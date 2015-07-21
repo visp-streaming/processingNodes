@@ -24,5 +24,4 @@ public class ForwardController {
         return message;
     }
 
-
 }
