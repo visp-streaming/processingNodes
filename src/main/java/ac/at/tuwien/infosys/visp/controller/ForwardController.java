@@ -18,7 +18,7 @@ public class ForwardController {
     public Message forwardMessage(@RequestBody Message message) {
         LOG.info("Received message with id: " + message.getId());
 
-        LOG.info("Don nothing with: " + message.getId());
+        LOG.info("Do nothing with: " + message.getId());
 
         LOG.info("Forwarded message with id: " + message.getId());
         return message;
