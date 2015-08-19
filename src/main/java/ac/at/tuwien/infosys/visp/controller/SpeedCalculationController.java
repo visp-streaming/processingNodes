@@ -24,6 +24,8 @@ public class SpeedCalculationController {
     @Autowired
     private StringRedisTemplate template;
 
+    private String key;
+
     private static final Logger LOG = LoggerFactory.getLogger(ForwardController.class);
 
     @RequestMapping(value = "/calculateSpeed", method = RequestMethod.POST)
@@ -38,6 +40,8 @@ public class SpeedCalculationController {
             e.printStackTrace();
         }
 
+        key = "speed" + location.getTaxiId();
+
         HashOperations<String, String, String> ops = this.template.opsForHash();
 
         Speed speed = calculateSpeed(location, ops);
@@ -45,7 +49,7 @@ public class SpeedCalculationController {
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Message msg = null;
         try {
-            msg = new Message(ow.writeValueAsString(speed));
+            msg = new Message("speed", ow.writeValueAsString(speed));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -60,30 +64,37 @@ public class SpeedCalculationController {
         speed.setTaxiId(location.getTaxiId());
 
         if (location.getLatitude().equals("start")) {
-            ops.put(location.getTaxiId(), "latitude", location.getLatitude());
-            ops.put(location.getTaxiId(), "longitude", location.getLongitude());
-            ops.put(location.getTaxiId(), "timestamp", location.getTime());
+            ops.put(key, "latitude", location.getLatitude());
+            ops.put(key, "longitude", location.getLongitude());
+            ops.put(key, "timestamp", location.getTime());
             speed.setSpeed("0");
         } else {
-            String pastLatitude = ops.get(location.getTaxiId(), "latitude");
-            String pastLongitude = ops.get(location.getTaxiId(), "longitude");
-            String pastTime = ops.get(location.getTaxiId(), "timestamp");
+            String pastLatitude = ops.get(key, "latitude");
+            String pastLongitude = ops.get(key, "longitude");
+            String pastTime = ops.get(key, "timestamp");
 
-            Float distance = distance(Float.parseFloat(pastLatitude), Float.parseFloat(pastLongitude), Float.parseFloat(location.getLatitude()), Float.parseFloat(location.getLongitude()));
-            Long timediff = Long.parseLong(location.getTime())-Long.parseLong(pastTime);
+            if (pastLatitude.equals("start")) {
+                ops.put(key, "latitude", location.getLatitude());
+                ops.put(key, "longitude", location.getLongitude());
+                ops.put(key, "timestamp", location.getTime());
+                speed.setSpeed("0");
+            } else {
+                Float distance = distance(Float.parseFloat(pastLatitude), Float.parseFloat(pastLongitude), Float.parseFloat(location.getLatitude()), Float.parseFloat(location.getLongitude()));
+                Long timediff = Long.parseLong(location.getTime())-Long.parseLong(pastTime);
 
-            Double currentSpeed = 0.0;
+                Double currentSpeed = 0.0;
 
-            if (timediff != 0) {
-                timediff = timediff / 1000; //convert to seconds
-                currentSpeed = distance.doubleValue()/timediff.doubleValue() * 3.6;
+                if (timediff != 0) {
+                    timediff = timediff / 1000; //convert to seconds
+                    currentSpeed = distance.doubleValue()/timediff.doubleValue() * 3.6;
+                }
+
+                //replace old position with new one
+                ops.put(key, "latitude", location.getLatitude());
+                ops.put(key, "longitude", location.getLongitude());
+                ops.put(key, "timestamp", location.getTime());
+                speed.setSpeed(currentSpeed.toString());
             }
-
-            //replace old position with new one
-            ops.put(location.getTaxiId(), "latitude", location.getLatitude());
-            ops.put(location.getTaxiId(), "longitude", location.getLongitude());
-            ops.put(location.getTaxiId(), "timestamp", location.getTime());
-            speed.setSpeed(currentSpeed.toString());
         }
         return speed;
     }
@@ -96,13 +107,10 @@ public class SpeedCalculationController {
         double earthRadius = 6371000; //meters
         double dLat = Math.toRadians(lat2-lat1);
         double dLng = Math.toRadians(lng2-lng1);
-        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                        Math.sin(dLng/2) * Math.sin(dLng/2);
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.sin(dLng/2) * Math.sin(dLng/2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         float dist = (float) (earthRadius * c);
 
         return dist;
     }
-
 }

@@ -29,7 +29,7 @@ public class AggregateRideController {
     private StringRedisTemplate template;
 
     @RequestMapping(value = "/aggregate", method = RequestMethod.POST)
-    public Message forwardMessage(@RequestBody Message message) {
+    public Message aggregateMessages(@RequestBody Message message) {
         LOG.info("Received message with id: " + message.getId());
 
         ObjectMapper mapper = new ObjectMapper();
@@ -40,15 +40,22 @@ public class AggregateRideController {
             e.printStackTrace();
         }
 
+        String key = "aggregation" + location.getTaxiId();
+
         ListOperations<String, String> ops = this.template.opsForList();
 
-        ops.rightPush(location.getTaxiId(), message.getPayload());
+
+
+        if (!location.getLongitude().equals("start")) {
+            ops.rightPush(key, message.getPayload());
+        }
+
 
         if (location.getLatitude().equals("stop")) {
             List<Location> locations = new ArrayList<>();
 
-            while (ops.size(location.getTaxiId()) > 0) {
-                String singleLocation = ops.leftPop(location.getTaxiId());
+            while (ops.size(key) > 0) {
+                String singleLocation = ops.leftPop(key);
                 try {
                     locations.add(mapper.readValue(singleLocation, Location.class));
                 } catch (IOException e) {
@@ -61,7 +68,7 @@ public class AggregateRideController {
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             Message msg = null;
             try {
-                msg = new Message(ow.writeValueAsString(locationList));
+                msg = new Message("aggregation", ow.writeValueAsString(locationList));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
