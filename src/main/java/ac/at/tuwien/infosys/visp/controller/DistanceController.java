@@ -48,7 +48,7 @@ public class DistanceController {
         Distance distance = new Distance(locations.getLocations().get(0).getTaxiId(), String.valueOf(overallDistance));
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        Message msg = null;
+        Message msg = new Message("empty", null);
         try {
             msg = new Message("distance", ow.writeValueAsString(overallDistance));
         } catch (JsonProcessingException e) {
@@ -56,9 +56,9 @@ public class DistanceController {
         }
 
 
-        LOG.info("Calculated distance for : " + message.getId());
+        LOG.info("Calculated distance for : " + locations.getLocations().get(0).getTaxiId() + " with distance of" + overallDistance);
 
-        return message;
+        return msg;
     }
 
     /*

@@ -16,11 +16,11 @@ public class LogController {
 
     @RequestMapping(value = "/log", method = RequestMethod.POST)
     public Message forwardMessage(@RequestBody Message message) {
-        LOG.info("Received message with id: " + message.getId());
+        LOG.trace("Received message with id: " + message.getId());
 
-        LOG.info("Do nothing with: " + message.getId());
+        LOG.info("Log nothing with: " + message.getId() + " " + message.getHeader());
 
-        LOG.info("Forwarded message with id: " + message.getId());
+        LOG.trace("Forwarded message with id: " + message.getId());
         return message;
     }
 

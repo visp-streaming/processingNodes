@@ -28,25 +28,29 @@ public class MonitorController {
 
     @RequestMapping(value = "/monitor", method = RequestMethod.POST)
     public void trackMessage(@RequestBody Message message) {
-        LOG.info("Received message with id: " + message.getId());
+        LOG.trace("Received message with id: " + message.getId());
 
-        ObjectMapper mapper = new ObjectMapper();
-        Location location = null;
-        try {
-            location = mapper.readValue(message.getPayload(), Location.class);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (message.getHeader().equals("location")) {
+            ObjectMapper mapper = new ObjectMapper();
+            Location location = null;
+            try {
+                location = mapper.readValue(message.getPayload(), Location.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (location.getLatitude().equals("start")) {
+                startLog(location);
+                return;
+            }
+
+            if (location.getLatitude().equals("stop")) {
+                stopLog(location);
+                return;
+            }
         }
 
-        if (location.getLatitude().equals("start")) {
-            startLog(location);
-            return;
-        }
 
-        if (location.getLatitude().equals("stop")) {
-            stopLog(location);
-            return;
-        }
     }
 
 

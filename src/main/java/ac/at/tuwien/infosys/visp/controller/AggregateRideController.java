@@ -30,7 +30,7 @@ public class AggregateRideController {
 
     @RequestMapping(value = "/aggregate", method = RequestMethod.POST)
     public Message aggregateMessages(@RequestBody Message message) {
-        LOG.info("Received message with id: " + message.getId());
+        LOG.trace("Received message with id: " + message.getId());
 
         ObjectMapper mapper = new ObjectMapper();
         Location location = null;
@@ -44,10 +44,9 @@ public class AggregateRideController {
 
         ListOperations<String, String> ops = this.template.opsForList();
 
-
-
-        if (!location.getLongitude().equals("start")) {
+        if ((!location.getLongitude().equals("start")) && (!location.getLatitude().equals("stop"))) {
             ops.rightPush(key, message.getPayload());
+            LOG.trace("Stored message with id: " + message.getId());
         }
 
 
@@ -66,7 +65,7 @@ public class AggregateRideController {
             Locations locationList = new Locations();
             locationList.setLocations(locations);
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-            Message msg = null;
+            Message msg = new Message("empty", null);
             try {
                 msg = new Message("aggregation", ow.writeValueAsString(locationList));
             } catch (JsonProcessingException e) {
@@ -76,8 +75,7 @@ public class AggregateRideController {
             LOG.info("Forwarded new trip for taxi with id : " + location.getTaxiId());
             return msg;
         }
-        LOG.info("Stored message with id: " + message.getId());
 
-        return null;
+        return new Message("empty", null);
     }
 }

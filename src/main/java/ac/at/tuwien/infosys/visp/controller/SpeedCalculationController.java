@@ -30,7 +30,7 @@ public class SpeedCalculationController {
 
     @RequestMapping(value = "/calculateSpeed", method = RequestMethod.POST)
     public Message forwardMessage(@RequestBody Message message) {
-        LOG.info("Received message with id: " + message.getId());
+        LOG.trace("Received message with id: " + message.getId());
 
         ObjectMapper mapper = new ObjectMapper();
         Location location = null;
@@ -47,7 +47,7 @@ public class SpeedCalculationController {
         Speed speed = calculateSpeed(location, ops);
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        Message msg = null;
+        Message msg = new Message("empty", null);
         try {
             msg = new Message("speed", ow.writeValueAsString(speed));
         } catch (JsonProcessingException e) {
@@ -69,31 +69,35 @@ public class SpeedCalculationController {
             ops.put(key, "timestamp", location.getTime());
             speed.setSpeed("0");
         } else {
-            String pastLatitude = ops.get(key, "latitude");
-            String pastLongitude = ops.get(key, "longitude");
-            String pastTime = ops.get(key, "timestamp");
+            if (!location.getLatitude().equals("stop")) {
+                String pastLatitude = ops.get(key, "latitude");
+                String pastLongitude = ops.get(key, "longitude");
+                String pastTime = ops.get(key, "timestamp");
 
-            if (pastLatitude.equals("start")) {
-                ops.put(key, "latitude", location.getLatitude());
-                ops.put(key, "longitude", location.getLongitude());
-                ops.put(key, "timestamp", location.getTime());
-                speed.setSpeed("0");
-            } else {
-                Float distance = distance(Float.parseFloat(pastLatitude), Float.parseFloat(pastLongitude), Float.parseFloat(location.getLatitude()), Float.parseFloat(location.getLongitude()));
-                Long timediff = Long.parseLong(location.getTime())-Long.parseLong(pastTime);
+                if (pastLatitude.equals("start")) {
+                    ops.put(key, "latitude", location.getLatitude());
+                    ops.put(key, "longitude", location.getLongitude());
+                    ops.put(key, "timestamp", location.getTime());
+                    speed.setSpeed("0");
+                } else {
+                    Float distance = distance(Float.parseFloat(pastLatitude), Float.parseFloat(pastLongitude), Float.parseFloat(location.getLatitude()), Float.parseFloat(location.getLongitude()));
+                    Long timediff = Long.parseLong(location.getTime())-Long.parseLong(pastTime);
 
-                Double currentSpeed = 0.0;
+                    Double currentSpeed = 0.0;
 
-                if (timediff != 0) {
-                    timediff = timediff / 1000; //convert to seconds
-                    currentSpeed = distance.doubleValue()/timediff.doubleValue() * 3.6;
+                    if (timediff != 0) {
+                        timediff = timediff / 1000; //convert to seconds
+                        currentSpeed = distance.doubleValue()/timediff.doubleValue() * 3.6;
+                    }
+
+                    //replace old position with new one
+                    ops.put(key, "latitude", location.getLatitude());
+                    ops.put(key, "longitude", location.getLongitude());
+                    ops.put(key, "timestamp", location.getTime());
+                    speed.setSpeed(currentSpeed.toString());
                 }
-
-                //replace old position with new one
-                ops.put(key, "latitude", location.getLatitude());
-                ops.put(key, "longitude", location.getLongitude());
-                ops.put(key, "timestamp", location.getTime());
-                speed.setSpeed(currentSpeed.toString());
+            } else {
+                speed.setSpeed("-1");
             }
         }
         return speed;
