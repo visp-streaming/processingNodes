@@ -72,7 +72,7 @@ public class AggregateRideController {
                 e.printStackTrace();
             }
 
-            LOG.info("Forwarded new trip for taxi with id : " + location.getTaxiId());
+            LOG.trace("Forwarded new trip for taxi with id : " + location.getTaxiId());
             return msg;
         }
 

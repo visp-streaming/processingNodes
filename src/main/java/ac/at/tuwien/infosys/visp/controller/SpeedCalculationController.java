@@ -55,7 +55,7 @@ public class SpeedCalculationController {
         }
 
 
-        LOG.info("Forwarded message with id: " + message.getId() + " with speed of " + speed.getSpeed() + " for taxi " + speed.getTaxiId());
+        LOG.trace("Forwarded message with id: " + message.getId() + " with speed of " + speed.getSpeed() + " for taxi " + speed.getTaxiId());
         return msg;
     }
 
@@ -73,6 +73,13 @@ public class SpeedCalculationController {
                 String pastLatitude = ops.get(key, "latitude");
                 String pastLongitude = ops.get(key, "longitude");
                 String pastTime = ops.get(key, "timestamp");
+
+                //this is some error compensation...
+                if (pastLatitude == null) {
+                    pastLatitude = "start";
+                    pastLongitude = "start";
+                    pastTime = location.getTime();
+                }
 
                 if (pastLatitude.equals("start")) {
                     ops.put(key, "latitude", location.getLatitude());

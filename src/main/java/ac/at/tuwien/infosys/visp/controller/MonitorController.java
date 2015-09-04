@@ -30,7 +30,7 @@ public class MonitorController {
     public void trackMessage(@RequestBody Message message) {
         LOG.trace("Received message with id: " + message.getId());
 
-        if (message.getHeader().equals("location")) {
+        if (message.getHeader().equals("initial")) {
             ObjectMapper mapper = new ObjectMapper();
             Location location = null;
             try {
@@ -48,6 +48,10 @@ public class MonitorController {
                 stopLog(location);
                 return;
             }
+        }
+
+        if (message.getHeader().equals("report")) {
+            //TODO implement me
         }
 
 

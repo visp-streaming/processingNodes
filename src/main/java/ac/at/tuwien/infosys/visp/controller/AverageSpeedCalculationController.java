@@ -52,8 +52,9 @@ public class AverageSpeedCalculationController {
 
         if (speed.getSpeed().equals("-1")) {
             try {
-                msg = new Message("avgSpeed", ow.writeValueAsString(ops.get(key)));
-                LOG.info("Forwarded message with id: " + message.getId() + " with AVG Speed of " + ow.writeValueAsString(ops.get(key)) + " for taxi " + speed.getTaxiId());
+                Speed avgSpeed = new Speed(speed.getTaxiId(), ops.get(key));
+                msg = new Message("avgSpeed", ow.writeValueAsString(avgSpeed));
+                LOG.trace("Forwarded message with id: " + message.getId() + " with AVG Speed of " + ow.writeValueAsString(ops.get(key)) + " for taxi " + speed.getTaxiId());
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }

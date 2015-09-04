@@ -50,13 +50,13 @@ public class DistanceController {
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Message msg = new Message("empty", null);
         try {
-            msg = new Message("distance", ow.writeValueAsString(overallDistance));
+            msg = new Message("distance", ow.writeValueAsString(distance));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
 
 
-        LOG.info("Calculated distance for : " + locations.getLocations().get(0).getTaxiId() + " with distance of" + overallDistance);
+        LOG.trace("Calculated distance for : " + locations.getLocations().get(0).getTaxiId() + " with distance of" + overallDistance);
 
         return msg;
     }

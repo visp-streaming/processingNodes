@@ -18,10 +18,10 @@ public class LogController {
     public Message forwardMessage(@RequestBody Message message) {
         LOG.trace("Received message with id: " + message.getId());
 
-        LOG.info("Log nothing with: " + message.getId() + " " + message.getHeader());
+        LOG.info("Log message with: " + message.getId() + " " + message.getHeader() + message.getPayload());
 
-        LOG.trace("Forwarded message with id: " + message.getId());
-        return message;
+        Message msg = new Message("empty", null);
+        return msg;
     }
 
 }
