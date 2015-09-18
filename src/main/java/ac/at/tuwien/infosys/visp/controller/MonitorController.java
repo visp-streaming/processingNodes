@@ -10,14 +10,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-@RestController
+@Service
 public class MonitorController {
 
     @Autowired
@@ -26,8 +23,7 @@ public class MonitorController {
     private static final Logger LOG = LoggerFactory.getLogger(ForwardController.class);
 
 
-    @RequestMapping(value = "/monitor", method = RequestMethod.POST)
-    public void trackMessage(@RequestBody Message message) {
+    public void trackMessage(Message message) {
         LOG.trace("Received message with id: " + message.getId());
 
         if (message.getHeader().equals("initial")) {
@@ -53,8 +49,6 @@ public class MonitorController {
         if (message.getHeader().equals("report")) {
             //TODO implement me
         }
-
-
     }
 
 

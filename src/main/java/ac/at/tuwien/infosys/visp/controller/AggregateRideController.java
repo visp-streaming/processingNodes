@@ -11,16 +11,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@RestController
+@Service
 public class AggregateRideController {
 
     private static final Logger LOG = LoggerFactory.getLogger(AggregateRideController.class);
@@ -28,8 +25,7 @@ public class AggregateRideController {
     @Autowired
     private StringRedisTemplate template;
 
-    @RequestMapping(value = "/aggregate", method = RequestMethod.POST)
-    public Message aggregateMessages(@RequestBody Message message) {
+    public Message aggregateMessages(Message message) {
         LOG.trace("Received message with id: " + message.getId());
 
         ObjectMapper mapper = new ObjectMapper();

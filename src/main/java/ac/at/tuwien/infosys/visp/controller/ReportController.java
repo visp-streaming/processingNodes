@@ -3,20 +3,20 @@ package ac.at.tuwien.infosys.visp.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import entities.*;
+import entities.Distance;
+import entities.Message;
+import entities.Report;
+import entities.Speed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-@RestController
+@Service
 public class ReportController {
 
     @Autowired
@@ -26,8 +26,7 @@ public class ReportController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ForwardController.class);
 
-    @RequestMapping(value = "/report", method = RequestMethod.POST)
-    public Message forwardMessage(@RequestBody Message message) {
+    public Message report(Message message) {
         LOG.trace("Received message with id: " + message.getId());
 
         HashOperations<String, String, String> ops = this.template.opsForHash();
