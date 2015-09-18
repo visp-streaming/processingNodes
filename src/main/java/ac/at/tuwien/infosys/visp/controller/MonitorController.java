@@ -3,6 +3,7 @@ package ac.at.tuwien.infosys.visp.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import entities.Location;
 import entities.Message;
+import entities.Report;
 import org.joda.time.DateTime;
 import org.joda.time.Seconds;
 import org.slf4j.Logger;
@@ -47,7 +48,15 @@ public class MonitorController {
         }
 
         if (message.getHeader().equals("report")) {
-            //TODO implement me
+            ObjectMapper mapper = new ObjectMapper();
+            Report report = null;
+            try {
+                report = mapper.readValue(message.getPayload(), Report.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            reportLog(report);
         }
     }
 
@@ -77,7 +86,27 @@ public class MonitorController {
         Seconds duration = Seconds.secondsBetween(start, finish);
 
         HashOperations<String, String, String> logData = this.template.opsForHash();
-        ops.put("logData", key, duration.toString());
+        ops.put("logRide", key, duration.toString());
         LOG.info("logged stop of taxiId: " + location.getTaxiId() + " with duration " + duration.toString());
+    }
+
+
+    public void reportLog(Report report) {
+        String key = report.getTaxiId();
+        HashOperations<String, String, String> ops = this.template.opsForHash();
+
+        DateTime finish = new DateTime();
+
+        if (!this.template.hasKey(key)) {
+            ops.put(key, "report", finish.toString());
+        }
+
+        DateTime stop = new DateTime(ops.get(key, "stop"));
+
+        Seconds duration = Seconds.secondsBetween(stop, finish);
+
+        HashOperations<String, String, String> logData = this.template.opsForHash();
+        ops.put("logReport", key, duration.toString());
+        LOG.info("logged report of taxiId: " + report.getTaxiId() + " with duration " + duration.toString());
     }
 }

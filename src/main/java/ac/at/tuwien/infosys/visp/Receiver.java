@@ -41,8 +41,6 @@ public class Receiver {
     @RabbitListener(queues = "helloWorld")
     public void assign(Message message) throws InterruptedException {
 
-        //TODO remove this testlogic
-
         if (message.getHeader().equals("initial")) {
             sender.send(speedCalculationController.speedCalculation(message));
 
@@ -73,14 +71,6 @@ public class Receiver {
             monitorController.trackMessage(message);
 
         }
-
-        //TODO reactivate
-        //Server server = childProcessManagement.getNextChildNodeRoundRobin();
-
-        //LOG.info("SIMULATEDCALL TO: " + cloudService.getPrivateAddress(server) + ":10001/forward");
-
-        LOG.trace("SIMULATEDCALL TO: localhost:10001/forward");
-
     }
 
 
