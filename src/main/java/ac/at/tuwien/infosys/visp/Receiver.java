@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -36,17 +37,20 @@ public class Receiver {
     @Autowired
     LogController logController;
 
+    @Value("${role}")
+    private String role;
+
     private static final Logger LOG = LoggerFactory.getLogger(Receiver.class);
 
     @RabbitListener(queues = "helloWorld")
     public void assign(Message message) throws InterruptedException {
 
         if (message.getHeader().equals("initial")) {
-            sender.send(speedCalculationController.speedCalculation(message));
-
-            sender.send(aggregateRideController.aggregateMessages(message));
-
-            monitorController.trackMessage(message);
+            switch(role) {
+                case "speed" : sender.send(speedCalculationController.speedCalculation(message)); break;
+                case "aggregate" : sender.send(aggregateRideController.aggregateMessages(message)); break;
+                case "monitor" : monitorController.trackMessage(message); break;
+            }
         }
 
         if (message.getHeader().equals("speed")) {
@@ -66,10 +70,7 @@ public class Receiver {
         }
 
         if (message.getHeader().equals("report")) {
-            logController.forwardMessage(message);
-
             monitorController.trackMessage(message);
-
         }
     }
 
