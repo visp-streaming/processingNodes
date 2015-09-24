@@ -72,8 +72,8 @@ public class SpeedCalculationController {
 
                 //this is some error compensation...
                 if (pastLatitude == null) {
-                    pastLatitude = "start";
-                    pastLongitude = "start";
+                    pastLatitude = "1.0";
+                    pastLongitude = "1.0";
                     pastTime = location.getTime();
                 }
 
@@ -83,21 +83,32 @@ public class SpeedCalculationController {
                     ops.put(key, "timestamp", location.getTime());
                     speed.setSpeed("0");
                 } else {
-                    Float distance = distance(Float.parseFloat(pastLatitude), Float.parseFloat(pastLongitude), Float.parseFloat(location.getLatitude()), Float.parseFloat(location.getLongitude()));
-                    Long timediff = Long.parseLong(location.getTime())-Long.parseLong(pastTime);
+                    try {
+                        Float distance = distance(Float.parseFloat(pastLatitude), Float.parseFloat(pastLongitude), Float.parseFloat(location.getLatitude()), Float.parseFloat(location.getLongitude()));
+                        Long timediff = Long.parseLong(location.getTime())-Long.parseLong(pastTime);
+                        Double currentSpeed = 0.0;
 
-                    Double currentSpeed = 0.0;
+                        if (timediff != 0) {
+                            timediff = timediff / 1000; //convert to seconds
+                            currentSpeed = distance.doubleValue()/timediff.doubleValue() * 3.6;
+                        }
+                        //replace old position with new one
+                        ops.put(key, "latitude", location.getLatitude());
+                        ops.put(key, "longitude", location.getLongitude());
+                        ops.put(key, "timestamp", location.getTime());
+                        speed.setSpeed(currentSpeed.toString());
 
-                    if (timediff != 0) {
-                        timediff = timediff / 1000; //convert to seconds
-                        currentSpeed = distance.doubleValue()/timediff.doubleValue() * 3.6;
+                    } catch (Exception ex) {
+                        ops.put(key, "1.0", location.getLatitude());
+                        ops.put(key, "1.0", location.getLongitude());
+                        ops.put(key, "timestamp", location.getTime());
+                        speed.setSpeed("0");
+
                     }
 
-                    //replace old position with new one
-                    ops.put(key, "latitude", location.getLatitude());
-                    ops.put(key, "longitude", location.getLongitude());
-                    ops.put(key, "timestamp", location.getTime());
-                    speed.setSpeed(currentSpeed.toString());
+
+
+
                 }
             } else {
                 speed.setSpeed("-1");
