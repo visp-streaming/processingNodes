@@ -65,7 +65,10 @@ public class SpeedCalculationController {
             ops.put(key, "timestamp", location.getTime());
             speed.setSpeed("0");
         } else {
-            if (!location.getLatitude().equals("stop")) {
+            if (location.getLatitude().equals("stop")) {
+                speed.setSpeed("-1");
+            } else {
+
                 String pastLatitude = ops.get(key, "latitude");
                 String pastLongitude = ops.get(key, "longitude");
                 String pastTime = ops.get(key, "timestamp");
@@ -110,8 +113,6 @@ public class SpeedCalculationController {
 
 
                 }
-            } else {
-                speed.setSpeed("-1");
             }
         }
         return speed;
