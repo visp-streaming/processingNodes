@@ -43,7 +43,7 @@ public class ReportController {
                 e.printStackTrace();
             }
 
-            key = "report" + speed.getTaxiId();
+            key = speed.getTaxiId();
 
             if (this.template.hasKey(key)) {
                String distance = ops.get(key, "distance");
@@ -52,6 +52,7 @@ public class ReportController {
                 try {
                     msg = new Message("report", ow.writeValueAsString(report));
                     LOG.info("Forwarded report for taxi : " + report.getTaxiId() + " with speed of " + report.getAverageSpeed() + " and distance " + report.getDistance());
+                    return msg;
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
@@ -69,7 +70,7 @@ public class ReportController {
                 e.printStackTrace();
             }
 
-            key = "report" + distance.getTaxiId();
+            key = distance.getTaxiId();
 
             if (this.template.hasKey(key)) {
                 String speed = ops.get(key, "speed");
@@ -78,6 +79,7 @@ public class ReportController {
                 try {
                     msg = new Message("report", ow.writeValueAsString(report));
                     LOG.trace("Forwarded report for taxi : " + report.getTaxiId() + " with speed of " + report.getAverageSpeed() + " and distance " + report.getDistance());
+                    return msg;
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
