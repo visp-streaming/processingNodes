@@ -104,7 +104,7 @@ public class MonitorController {
 
         Seconds duration = Seconds.secondsBetween(stop, finish);
 
-        ops.put("logReport", key, duration.toString());
+        ops.put(key, "logReport", duration.toString());
         LOG.info("logged report of taxiId: " + report.getTaxiId() + " with duration " + duration.toString());
     }
 }
