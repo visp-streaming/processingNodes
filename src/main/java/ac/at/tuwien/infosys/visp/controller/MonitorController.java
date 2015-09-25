@@ -77,7 +77,7 @@ public class MonitorController {
 
         DateTime finish = new DateTime();
 
-        if (!this.template.hasKey(key)) {
+        if (this.template.hasKey(key)) {
             ops.put(key, "stop", finish.toString());
         }
 
@@ -85,8 +85,7 @@ public class MonitorController {
 
         Seconds duration = Seconds.secondsBetween(start, finish);
 
-        HashOperations<String, String, String> logData = this.template.opsForHash();
-        ops.put("logRide", key, duration.toString());
+        ops.put(key, "logRide" , duration.toString());
         LOG.info("logged stop of taxiId: " + location.getTaxiId() + " with duration " + duration.toString());
     }
 
@@ -97,7 +96,7 @@ public class MonitorController {
 
         DateTime finish = new DateTime();
 
-        if (!this.template.hasKey(key)) {
+        if (this.template.hasKey(key)) {
             ops.put(key, "report", finish.toString());
         }
 
@@ -105,7 +104,6 @@ public class MonitorController {
 
         Seconds duration = Seconds.secondsBetween(stop, finish);
 
-        HashOperations<String, String, String> logData = this.template.opsForHash();
         ops.put("logReport", key, duration.toString());
         LOG.info("logged report of taxiId: " + report.getTaxiId() + " with duration " + duration.toString());
     }
