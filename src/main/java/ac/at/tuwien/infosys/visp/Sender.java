@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class Sender {
 
+    //TODO fetch outgoing exchange from environment variables
+
     private static final Logger LOG = LoggerFactory.getLogger(Sender.class);
 
     @Value("${rabbitMQ.outgoingQueue}")

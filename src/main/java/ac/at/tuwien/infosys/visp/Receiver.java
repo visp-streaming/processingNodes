@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class Receiver {
 
+    //TODO fetch incoming queue from environment variables
+
     @Autowired
     Sender sender;
 
