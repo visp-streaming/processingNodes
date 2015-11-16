@@ -1,18 +1,18 @@
 package ac.at.tuwien.infosys.visp;
 
-
 import ac.at.tuwien.infosys.visp.entities.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.test.annotation.Repeat;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@Service
-public class Sender {
-
-    private static final Logger LOG = LoggerFactory.getLogger(Sender.class);
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = VispProcessingNodeApplication.class)
+public class DataProvider {
 
     @Value("${outgoingexchange}")
     private String outgoingExchange;
@@ -20,13 +20,18 @@ public class Sender {
     @Value("${spring.rabbitmq.outgoing.host}")
     private String outgoingHost;
 
-    public void send(Message message) {
+
+    @Test
+    @Repeat(value = 10)
+    public void send() {
+        Message msg = new Message("test123");
+
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
 
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setRoutingKey(outgoingExchange);
         template.setQueue(outgoingExchange);
-        template.convertAndSend(outgoingExchange, outgoingExchange, message);
+        template.convertAndSend(outgoingExchange, outgoingExchange, msg);
         connectionFactory.destroy();
     }
 }

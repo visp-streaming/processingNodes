@@ -5,17 +5,17 @@
 
 	<groupId>ac.at.tuwien.infosys.visp</groupId>
 	<artifactId>vispProcessingNode</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<version>0.0.1</version>
+	<packaging>jar</packaging>
 
 	<name>vispProcessingNode</name>
-	<description>A node that provides stream processing opertions</description>
+	<description>A node that provides stream processing operations</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.2.5.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<version>1.3.0.RELEASE</version>
+		<relativePath/>
 	</parent>
 
 	<properties>
@@ -25,12 +25,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>ac.at.tuwien.infosys</groupId>
-			<artifactId>vispCommonData</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-amqp</artifactId>
 		</dependency>
@@ -38,12 +32,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-redis</artifactId>
 		</dependency>
-		<!--
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-remote-shell</artifactId>
-		</dependency>
--->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -60,12 +48,12 @@
 			<version>2.8.1</version>
 		</dependency>
 
-		<dependency>
+<!--		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>
 			<scope>provided</scope>
 		</dependency>
-
+-->
 	</dependencies>
 	
 	<build>
@@ -74,8 +62,28 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-		</plugins>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.3.5</version>
+                <configuration>
+                    <imageName>chochreiner/vispprocessingnodes</imageName>
+                    <baseImage>java:8</baseImage>
+                    <!--<entryPoint>["java", "-jar", "/${project.build.finalName}.jar"]</entryPoint>-->
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                    </resources>
+					<serverId>docker-hub</serverId>
+					<registryUrl>https://index.docker.io/v1/</registryUrl>
+				</configuration>
+            </plugin>
+
+
+        </plugins>
 	</build>
-	
 
 </project>

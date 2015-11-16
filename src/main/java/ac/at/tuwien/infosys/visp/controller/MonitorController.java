@@ -1,9 +1,9 @@
 package ac.at.tuwien.infosys.visp.controller;
 
+import ac.at.tuwien.infosys.visp.entities.Location;
+import ac.at.tuwien.infosys.visp.entities.Message;
+import ac.at.tuwien.infosys.visp.entities.Report;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import entities.Location;
-import entities.Message;
-import entities.Report;
 import org.joda.time.DateTime;
 import org.joda.time.Seconds;
 import org.slf4j.Logger;
