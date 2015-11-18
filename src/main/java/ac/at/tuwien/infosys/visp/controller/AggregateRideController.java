@@ -1,11 +1,11 @@
 package ac.at.tuwien.infosys.visp.controller;
 
-import ac.at.tuwien.infosys.visp.entities.Location;
-import ac.at.tuwien.infosys.visp.entities.Locations;
-import ac.at.tuwien.infosys.visp.entities.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import entities.Location;
+import entities.Locations;
+import entities.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

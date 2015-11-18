@@ -1,6 +1,6 @@
 package ac.at.tuwien.infosys.visp;
 
-import ac.at.tuwien.infosys.visp.entities.Message;
+import entities.Message;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
