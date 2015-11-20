@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Service
 public class Receiver {
@@ -48,10 +50,10 @@ public class Receiver {
     @RabbitListener(queues = { "#{'${incomingqueues}'.split('_')}" } )
     public void assign(Message message) throws InterruptedException {
 
-        File file = new File("~/" + "killme");
+        Path path = Paths.get("~/killme");
 
-        if (file.exists()) {
-            return;
+        if (Files.exists(path)) {
+           return;
         }
 
         if (message.getHeader().equals("initial")) {
