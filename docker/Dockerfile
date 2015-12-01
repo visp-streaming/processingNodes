@@ -1,5 +1,5 @@
 FROM java:8
-MAINTAINER Christoph
+MAINTAINER Christoph Hochreiner
 LABEL architecture="amd64"
 EXPOSE 10001
 ADD target/vispProcessingNode-0.0.1.jar vispProcessingNode.jar
