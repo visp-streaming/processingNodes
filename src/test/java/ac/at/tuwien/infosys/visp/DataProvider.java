@@ -34,4 +34,17 @@ public class DataProvider {
         template.convertAndSend(outgoingExchange, outgoingExchange, msg);
         connectionFactory.destroy();
     }
+
+    @Test
+    public void senderror() {
+        Message msg = new Message("error", "errormessage");
+
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
+
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setRoutingKey("error");
+        template.setQueue("error");
+        template.convertAndSend("error", "error", msg);
+        connectionFactory.destroy();
+    }
 }

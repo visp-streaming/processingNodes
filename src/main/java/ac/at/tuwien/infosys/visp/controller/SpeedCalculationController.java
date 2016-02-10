@@ -1,5 +1,6 @@
 package ac.at.tuwien.infosys.visp.controller;
 
+import ac.at.tuwien.infosys.visp.ErrorHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -9,6 +10,7 @@ import entities.Speed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -18,8 +20,14 @@ import java.io.IOException;
 @Service
 public class SpeedCalculationController {
 
+    @Value("${wait.speed}")
+    private Integer wait;
+
     @Autowired
     private StringRedisTemplate template;
+
+    @Autowired
+    ErrorHandler error;
 
     private String key;
 
@@ -33,7 +41,7 @@ public class SpeedCalculationController {
         try {
             location = mapper.readValue(message.getPayload(), Location.class);
         } catch (IOException e) {
-            e.printStackTrace();
+            error.send(e.getMessage());
         }
 
         key = "speed" + location.getTaxiId();
@@ -47,11 +55,17 @@ public class SpeedCalculationController {
         try {
             msg = new Message("speed", ow.writeValueAsString(speed));
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            error.send(e.getMessage());
         }
 
 
         LOG.trace("Forwarded message with id: " + message.getId() + " with speed of " + speed.getSpeed() + " for taxi " + speed.getTaxiId());
+
+        try {
+            Thread.sleep(wait);
+        } catch (InterruptedException e) {
+            error.send(e.getMessage());
+        }
         return msg;
     }
 
@@ -108,10 +122,6 @@ public class SpeedCalculationController {
                         speed.setSpeed("0");
 
                     }
-
-
-
-
                 }
             }
         }

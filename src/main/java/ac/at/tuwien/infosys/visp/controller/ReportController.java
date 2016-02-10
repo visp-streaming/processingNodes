@@ -1,5 +1,6 @@
 package ac.at.tuwien.infosys.visp.controller;
 
+import ac.at.tuwien.infosys.visp.ErrorHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -10,6 +11,7 @@ import entities.Speed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -19,8 +21,15 @@ import java.io.IOException;
 @Service
 public class ReportController {
 
+
+    @Value("${wait.report}")
+    private Integer wait;
+
     @Autowired
     private StringRedisTemplate template;
+
+    @Autowired
+    ErrorHandler error;
 
     private String key;
 
@@ -40,7 +49,7 @@ public class ReportController {
             try {
                 speed = mapper.readValue(message.getPayload(), Speed.class);
             } catch (IOException e) {
-                e.printStackTrace();
+                error.send(e.getMessage());
             }
 
             key = speed.getTaxiId();
@@ -54,7 +63,7 @@ public class ReportController {
                     LOG.info("Forwarded report for taxi : " + report.getTaxiId() + " with speed of " + report.getAverageSpeed() + " and distance " + report.getDistance());
                     return msg;
                 } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                    error.send(e.getMessage());
                 }
             } else {
                 ops.put(key, "speed", speed.getSpeed());
@@ -67,7 +76,7 @@ public class ReportController {
             try {
                 distance = mapper.readValue(message.getPayload(), Distance.class);
             } catch (IOException e) {
-                e.printStackTrace();
+                error.send(e.getMessage());
             }
 
             key = distance.getTaxiId();
@@ -81,13 +90,21 @@ public class ReportController {
                     LOG.trace("Forwarded report for taxi : " + report.getTaxiId() + " with speed of " + report.getAverageSpeed() + " and distance " + report.getDistance());
                     return msg;
                 } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                    error.send(e.getMessage());
                 }
             } else {
                 ops.put(key, "distance", distance.getDistance());
             }
             return msg;
         }
+
+        try {
+            Thread.sleep(wait);
+        } catch (InterruptedException e) {
+            error.send(e.getMessage());
+        }
+
+
         return msg;
     }
 

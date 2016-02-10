@@ -1,5 +1,6 @@
 package ac.at.tuwien.infosys.visp.controller;
 
+import ac.at.tuwien.infosys.visp.ErrorHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import entities.Location;
 import entities.Message;
@@ -9,6 +10,7 @@ import org.joda.time.Seconds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -18,8 +20,14 @@ import java.io.IOException;
 @Service
 public class MonitorController {
 
+    @Value("${wait.monitor}")
+    private Integer wait;
+
     @Autowired
     private StringRedisTemplate template;
+
+    @Autowired
+    ErrorHandler error;
 
     private static final Logger LOG = LoggerFactory.getLogger(ForwardController.class);
 
@@ -33,7 +41,7 @@ public class MonitorController {
             try {
                 location = mapper.readValue(message.getPayload(), Location.class);
             } catch (IOException e) {
-                e.printStackTrace();
+                error.send(e.getMessage());
             }
 
             if (location.getLatitude().equals("start")) {
@@ -53,11 +61,18 @@ public class MonitorController {
             try {
                 report = mapper.readValue(message.getPayload(), Report.class);
             } catch (IOException e) {
-                e.printStackTrace();
+                error.send(e.getMessage());
             }
 
             reportLog(report);
         }
+        try {
+            Thread.sleep(wait);
+        } catch (InterruptedException e) {
+            error.send(e.getMessage());
+        }
+
+
     }
 
 
