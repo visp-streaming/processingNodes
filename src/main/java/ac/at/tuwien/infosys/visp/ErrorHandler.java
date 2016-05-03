@@ -24,7 +24,6 @@ public class ErrorHandler {
 
     public void send(String exception) {
 
-
         Message msg = new Message("error", "operator: " + role + "\n\n" + exception);
 
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
