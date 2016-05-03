@@ -77,15 +77,16 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.0</version>
+                <version>0.4.8</version>
                 <configuration>
                     <imageName>chochreiner/vispprocessingnodes</imageName>
+					<forceTags>true</forceTags>
 					<imageTags>
 						<imageTag>latest</imageTag>
 					</imageTags>
-					<dockerDirectory>docker</dockerDirectory>
-                    <!--<baseImage>java:8</baseImage>-->
-                    <!--<entryPoint>["java", "-jar", "/${project.build.finalName}.jar"]</entryPoint>-->
+					<!--<dockerDirectory>docker</dockerDirectory>-->
+                    <baseImage>java:8</baseImage>
+                    <entryPoint>["java","-Djava.security.egd=file:/dev/./urandom","-jar","/${project.build.finalName}.jar"]</entryPoint>
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>
