@@ -41,6 +41,10 @@ public class Receiver {
     @Autowired
     LogController logController;
 
+    @Autowired
+    WaitController waitController;
+
+
     @Value("${role}")
     private String role;
 
@@ -82,6 +86,14 @@ public class Receiver {
 
         if (message.getHeader().equals("report")) {
             monitorController.trackMessage(message);
+        }
+
+        if (message.getHeader().equals("wait")) {
+            sender.send(waitController.forwardMessagewithWait(message));
+        }
+
+        if (message.getHeader().equals("log")) {
+            logController.logMessage(message);
         }
     }
 

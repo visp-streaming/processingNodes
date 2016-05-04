@@ -85,7 +85,7 @@
 						<imageTag>latest</imageTag>
 					</imageTags>
 					<!--<dockerDirectory>docker</dockerDirectory>-->
-                    <baseImage>java:8</baseImage>
+                    <baseImage>jeanblanchard/java:8</baseImage>
                     <entryPoint>["java","-Djava.security.egd=file:/dev/./urandom","-jar","/${project.build.finalName}.jar"]</entryPoint>
                     <resources>
                         <resource>

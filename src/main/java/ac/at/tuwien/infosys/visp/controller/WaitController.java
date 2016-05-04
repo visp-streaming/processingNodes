@@ -27,8 +27,8 @@ public class WaitController {
             case "step2" : Thread.sleep(250); msg = new Message("wait", "step3");  break;
             case "step3" : Thread.sleep(500); msg = new Message("wait", "step4");  break;
             case "step4" : Thread.sleep(1000); msg = new Message("wait", "step5");  break;
-            case "step5" : Thread.sleep(2000); msg = new Message("wait", "step1");  break;
-            default : Thread.sleep(100); msg = new Message("wait", "step1");
+            case "step5" : Thread.sleep(2000); msg = new Message("log");  break;
+            default : Thread.sleep(100); msg = new Message("log");
         }
 
         } catch (InterruptedException e) {

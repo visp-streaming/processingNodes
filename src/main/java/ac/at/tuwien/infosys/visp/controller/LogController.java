@@ -20,7 +20,7 @@ public class LogController {
     private static final Logger LOG = LoggerFactory.getLogger(LogController.class);
 
 
-    public Message forwardMessage(Message message) {
+    public Message logMessage(Message message) {
         LOG.trace("Received message with id: " + message.getId());
 
         LOG.info("Log message with: " + message.getId() + " " + message.getHeader() + message.getPayload());
