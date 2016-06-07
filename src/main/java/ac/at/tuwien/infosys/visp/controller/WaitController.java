@@ -1,5 +1,6 @@
 package ac.at.tuwien.infosys.visp.controller;
 
+import ac.at.tuwien.infosys.visp.DurationHandler;
 import ac.at.tuwien.infosys.visp.ErrorHandler;
 import entities.Message;
 import org.slf4j.Logger;
@@ -12,6 +13,9 @@ public class WaitController {
 
     @Autowired
     ErrorHandler error;
+
+    @Autowired
+    DurationHandler duration;
 
     private static final Logger LOG = LoggerFactory.getLogger(WaitController.class);
 
@@ -36,6 +40,13 @@ public class WaitController {
         }
 
         LOG.info("Log message with: " + message.getId() + " " + message.getHeader() + message.getPayload());
+
+
+        //send a response on average every 5 messages
+        if ((int)(Math.random() * 5) == 1) {
+            duration.send(message.getProcessingDuration());
+        }
+
 
         return message;
     }
