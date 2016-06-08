@@ -26,7 +26,7 @@ public class DurationHandler {
 
     public void send(String oldTime) {
 
-        Long duration = new DateTime(oldTime).getMillis() - new DateTime(DateTimeZone.UTC).getMillis();
+        Long duration = new DateTime(DateTimeZone.UTC).getMillis() - new DateTime(oldTime).getMillis();
 
         Message msg = new Message(role, duration.toString());
 
