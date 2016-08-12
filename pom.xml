@@ -67,7 +67,7 @@
 
 
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -77,7 +77,7 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.8</version>
+                <version>0.4.11</version>
                 <configuration>
                     <imageName>chochreiner/vispprocessingnodes</imageName>
 					<forceTags>true</forceTags>

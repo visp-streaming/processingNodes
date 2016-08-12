@@ -20,8 +20,17 @@ public class Sender {
     @Value("${spring.rabbitmq.outgoing.host}")
     private String outgoingHost;
 
+    @Value("${spring.rabbitmq.username}")
+    private String rabbitmqUsername;
+
+    @Value("${spring.rabbitmq.password}")
+    private String rabbitmqPassword;
+
     public void send(Message message) {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
+        connectionFactory.setUsername(rabbitmqUsername);
+        connectionFactory.setPassword(rabbitmqPassword);
+
 
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setRoutingKey(outgoingExchange);

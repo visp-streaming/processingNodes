@@ -14,15 +14,23 @@ import org.springframework.stereotype.Service;
 @Service
 public class DurationHandler {
 
+
+    @Value("${spring.rabbitmq.username}")
+    private String rabbitmqUsername;
+
+    @Value("${spring.rabbitmq.password}")
+    private String rabbitmqPassword;
+
+    @Value("${spring.rabbitmq.outgoing.host}")
+    private String outgoingHost;
+
+
     @Value("${role}")
     private String role;
 
     private static final Logger LOG = LoggerFactory.getLogger(DurationHandler.class);
 
     private String processingdurationexchange = "processingduration";
-
-    @Value("${spring.rabbitmq.outgoing.host}")
-    private String outgoingHost;
 
     public void send(String oldTime) {
 
@@ -31,6 +39,9 @@ public class DurationHandler {
         Message msg = new Message(role, duration.toString());
 
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
+        connectionFactory.setUsername(rabbitmqUsername);
+        connectionFactory.setPassword(rabbitmqPassword);
+
 
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setRoutingKey(processingdurationexchange);

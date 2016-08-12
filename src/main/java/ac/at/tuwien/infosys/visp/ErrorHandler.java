@@ -22,11 +22,21 @@ public class ErrorHandler {
     @Value("${spring.rabbitmq.outgoing.host}")
     private String outgoingHost;
 
+    @Value("${spring.rabbitmq.username}")
+    private String rabbitmqUsername;
+
+    @Value("${spring.rabbitmq.password}")
+    private String rabbitmqPassword;
+
+
     public void send(String exception) {
 
         Message msg = new Message("error", "operator: " + role + "\n\n" + exception);
 
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
+        connectionFactory.setUsername(rabbitmqUsername);
+        connectionFactory.setPassword(rabbitmqPassword);
+
 
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setRoutingKey(errorexchange);
