@@ -40,6 +40,7 @@ public class WaitController {
         }
 
         LOG.info("Log message with: " + message.getId() + " " + message.getHeader() + message.getPayload());
+        LOG.info("Log emitting with: " + msg.getId() + " " + msg.getHeader() + msg.getPayload());
 
 
         //send a response on average every 5 messages
@@ -48,7 +49,7 @@ public class WaitController {
         }
 
 
-        return message;
+        return msg;
     }
 
 }

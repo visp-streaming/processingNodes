@@ -1,13 +1,16 @@
 package ac.at.tuwien.infosys.visp;
 
 
-import entities.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import ac.at.tuwien.infosys.visp.monitor.ProcessingNodeMonitor;
+import entities.Message;
 
 @Service
 public class Sender {
@@ -26,6 +29,9 @@ public class Sender {
     @Value("${spring.rabbitmq.password}")
     private String rabbitmqPassword;
 
+    @Autowired
+    private ProcessingNodeMonitor monitor;
+    
     public void send(Message message) {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
         connectionFactory.setUsername(rabbitmqUsername);
@@ -37,5 +43,8 @@ public class Sender {
         template.setQueue(outgoingExchange);
         template.convertAndSend(outgoingExchange, outgoingExchange, message);
         connectionFactory.destroy();
+        
+        String destinationOperator = message.getHeader();
+        monitor.notifyOutgoingMessage(destinationOperator);
     }
 }

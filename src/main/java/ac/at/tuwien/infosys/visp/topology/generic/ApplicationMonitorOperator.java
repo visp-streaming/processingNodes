@@ -45,7 +45,7 @@ public class ApplicationMonitorOperator {
     List<Double> responseTimes = new ArrayList<Double>();
     private Lock responseTimesLock = new ReentrantLock();
     
-    private int waitToSend = sendEvery;
+    private int waitToSend = 10;
     private long lastCleanup = 0;
     private long cleanerGracePeriod = 500L;
     
