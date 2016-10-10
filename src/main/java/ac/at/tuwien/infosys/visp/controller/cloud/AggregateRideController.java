@@ -1,4 +1,4 @@
-package ac.at.tuwien.infosys.visp.controller;
+package ac.at.tuwien.infosys.visp.controller.cloud;
 
 import ac.at.tuwien.infosys.visp.ErrorHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;

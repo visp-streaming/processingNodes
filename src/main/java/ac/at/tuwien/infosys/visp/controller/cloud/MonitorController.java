@@ -1,6 +1,7 @@
-package ac.at.tuwien.infosys.visp.controller;
+package ac.at.tuwien.infosys.visp.controller.cloud;
 
 import ac.at.tuwien.infosys.visp.ErrorHandler;
+import ac.at.tuwien.infosys.visp.controller.ForwardController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import entities.Location;
 import entities.Message;
