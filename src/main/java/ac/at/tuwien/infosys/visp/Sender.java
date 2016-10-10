@@ -1,6 +1,12 @@
 package ac.at.tuwien.infosys.visp;
 
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -10,6 +16,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import ac.at.tuwien.infosys.visp.monitor.ProcessingNodeMonitor;
+
+import com.google.common.base.Splitter;
+
 import entities.Message;
 
 @Service
@@ -28,10 +37,33 @@ public class Sender {
 
     @Value("${spring.rabbitmq.password}")
     private String rabbitmqPassword;
+    
+    @Value("${operator.subscribed.operators}")
+    private String subscribedOperators;
 
     @Autowired
     private ProcessingNodeMonitor monitor;
     
+    private List<String> destinations;
+
+    @PostConstruct
+    private void computeDestinationOperatorName(){
+    	
+    	destinations = new ArrayList<String>();
+
+    	Iterable<String> dwnStr = Splitter.on(',').split(subscribedOperators);
+    	if (dwnStr == null)
+    		return;
+    	
+    	Iterator<String> it = dwnStr.iterator();
+    	while(it.hasNext()){
+    		destinations.add(it.next());
+    	}
+    	
+    	LOG.info("Set of downstream operators updated. New set: " + destinations);
+    	
+    }
+
     public void send(Message message) {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
         connectionFactory.setUsername(rabbitmqUsername);
@@ -43,8 +75,10 @@ public class Sender {
         template.setQueue(outgoingExchange);
         template.convertAndSend(outgoingExchange, outgoingExchange, message);
         connectionFactory.destroy();
-        
-        String destinationOperator = message.getHeader();
-        monitor.notifyOutgoingMessage(destinationOperator);
+
+        /* With current implementation, the outgoing message
+         * is forwarded to all downstream queues. */
+        monitor.notifyOutgoingMessage(destinations);
     }
+    
 }

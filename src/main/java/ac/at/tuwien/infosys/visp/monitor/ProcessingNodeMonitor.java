@@ -1,6 +1,7 @@
 package ac.at.tuwien.infosys.visp.monitor;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -29,19 +30,14 @@ public class ProcessingNodeMonitor {
 		processedMessagesLock = new ReentrantLock();
 	}
 
-	public void notifyOutgoingMessage(String destinationOperatorName) {
+	public void notifyOutgoingMessage(List<String> destinationOperators) {
 
 		emittedMessagesLock.lock();
 		try{
-		
-			Long count = emittedMessages.get(destinationOperatorName);
 
-			if (count == null)
-				count = new Long(1);
-			else
-				count = new Long(count.longValue() + 1);
-
-			emittedMessages.put(destinationOperatorName, count);			
+			for (String operatorName : destinationOperators){
+				updateOutgoingMessage(operatorName);
+			}
 
 		} finally{
 			emittedMessagesLock.unlock();
@@ -49,6 +45,33 @@ public class ProcessingNodeMonitor {
 
 	}
 
+	public void notifyOutgoingMessage(String destinationOperatorName) {
+
+		emittedMessagesLock.lock();
+		try{
+
+			updateOutgoingMessage(destinationOperatorName);
+
+		} finally{
+			emittedMessagesLock.unlock();
+		}
+
+	}
+
+	private void updateOutgoingMessage(String destinationOperatorName) {
+
+		Long count = emittedMessages.get(destinationOperatorName);
+
+		if (count == null)
+			count = new Long(1);
+		else
+			count = new Long(count.longValue() + 1);
+
+		emittedMessages.put(destinationOperatorName, count);			
+
+	}
+
+	
 	public void notifyProcessedMessage(String operatorName) {
 
 		processedMessagesLock.lock();

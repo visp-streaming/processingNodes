@@ -21,8 +21,6 @@ public class ProcessingNodeMetricsServer {
 	@Autowired
 	private ProcessingNodeMonitor procNodeMonitor;
 	
-	// XXX: is this the variable that define the proc node behaviour? 
-	// 		i.e., the reference of the operator node
     @Value("${role}")
     private String role;
 	
