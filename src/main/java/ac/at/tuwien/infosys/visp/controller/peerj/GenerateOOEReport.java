@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TransformData {
+public class GenerateOOEReport {
 
     @Autowired
     ErrorHandler error;
@@ -17,10 +17,19 @@ public class TransformData {
     @Autowired
     DurationHandler duration;
 
-    private static final Logger LOG = LoggerFactory.getLogger(TransformData.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GenerateOOEReport.class);
 
 
-    public Message forwardMessagewithWait(Message message) {
+    public Message process(Message message) {
+
+        //TODO aggregate all OOE information and group it into dedicated groups
+
+
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            error.send(e.getMessage());
+        }
 
         Message msg = new Message("transformedData", message.getPayload());
 
@@ -34,7 +43,6 @@ public class TransformData {
         if ((int)(Math.random() * 10) == 1) {
             duration.send(message.getProcessingDuration());
         }
-
 
         return message;
     }

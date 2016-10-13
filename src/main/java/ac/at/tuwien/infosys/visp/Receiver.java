@@ -45,6 +45,8 @@ public class Receiver {
     @Autowired
     WaitController waitController;
 
+    @Autowired
+    DurationHandler duration;
 
     @Value("${role}")
     private String role;
@@ -52,20 +54,26 @@ public class Receiver {
     private static final Logger LOG = LoggerFactory.getLogger(Receiver.class);
 
 
-    @RabbitListener(queues = { "#{'${incomingqueues}'.split('_')}" } )
+    @RabbitListener(queues = {"#{'${incomingqueues}'.split('_')}"})
     public void assign(Message message) throws InterruptedException {
 
         Path path = Paths.get("~/killme");
 
         if (Files.exists(path)) {
-           return;
+            return;
         }
 
         if (message.getHeader().equals("initial")) {
-            switch(role) {
-                case "speed" : sender.send(speedCalculationController.speedCalculation(message)); break;
-                case "aggregate" : sender.send(aggregateRideController.aggregateMessages(message)); break;
-                case "monitor" : monitorController.trackMessage(message); break;
+            switch (role) {
+                case "speed":
+                    sender.send(speedCalculationController.speedCalculation(message));
+                    break;
+                case "aggregate":
+                    sender.send(aggregateRideController.aggregateMessages(message));
+                    break;
+                case "monitor":
+                    monitorController.trackMessage(message);
+                    break;
             }
         }
 
@@ -96,10 +104,12 @@ public class Receiver {
         if (message.getHeader().equals("log")) {
             logController.logMessage(message);
         }
-    }
 
-
+        if ((int) (Math.random() * 10) == 1) {
+            duration.send(message.getProcessingDuration());
+        }
     }
+}
 
 
 

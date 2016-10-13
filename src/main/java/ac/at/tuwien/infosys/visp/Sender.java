@@ -27,6 +27,10 @@ public class Sender {
     private String rabbitmqPassword;
 
     public void send(Message message) {
+        if (message.getHeader().equals("empty")) {
+            return;
+        }
+
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
         connectionFactory.setUsername(rabbitmqUsername);
         connectionFactory.setPassword(rabbitmqPassword);
