@@ -1,5 +1,6 @@
 package ac.at.tuwien.infosys.visp.controller.peerj;
 
+import ac.at.tuwien.infosys.visp.DurationHandler;
 import ac.at.tuwien.infosys.visp.ErrorHandler;
 import entities.Message;
 import org.slf4j.Logger;
@@ -8,19 +9,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DistributeData {
+public class InformUser {
 
     @Autowired
     ErrorHandler error;
 
-    private static final Logger LOG = LoggerFactory.getLogger(DistributeData.class);
+    @Autowired
+    DurationHandler duration;
+
+    private static final Logger LOG = LoggerFactory.getLogger(InformUser.class);
+
 
     public Message process(Message message) {
 
-        Message msg = new Message("machineData", message.getPayload());
+
+        //TODO consume messages
 
 
-        return message;
+        return new Message("empty", null);
     }
 
 }
