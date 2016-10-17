@@ -1,12 +1,15 @@
 package ac.at.tuwien.infosys.visp.controller;
 
-import ac.at.tuwien.infosys.visp.DurationHandler;
-import ac.at.tuwien.infosys.visp.ErrorHandler;
-import entities.Message;
+import java.util.Random;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import ac.at.tuwien.infosys.visp.DurationHandler;
+import ac.at.tuwien.infosys.visp.ErrorHandler;
+import entities.Message;
 
 @Service
 public class WaitController {
@@ -19,6 +22,11 @@ public class WaitController {
 
     private static final Logger LOG = LoggerFactory.getLogger(WaitController.class);
 
+    private Random rnd;
+    
+    public WaitController() {
+    	this.rnd = new Random();
+	}
 
     public Message forwardMessagewithWait(Message message) {
         LOG.trace("Received message with id: " + message.getId());
@@ -48,6 +56,46 @@ public class WaitController {
             duration.send(message.getProcessingDuration());
         }
 
+
+        return msg;
+    }
+
+    public Message waitAndForwardByRole(String role, Message message) {
+        LOG.trace("Received message with id: " + message.getId());
+
+        Message msg = new Message(message.getHeader(), "message");
+        msg.setId(message.getId());
+
+        try {
+        	long wait = 0;
+	        switch(role.toLowerCase()) {
+	            case "step1" : 
+	            	wait = (long) Math.floor(rnd.nextDouble() * 12.0 + 13.0);
+	            	Thread.sleep(wait); 
+	            	break;
+	            case "step2" : 
+	            	wait = (long) Math.floor(rnd.nextDouble() * 9.0 + 30.0);
+	            	Thread.sleep(wait); 
+	            	break;
+	            case "consumer" : 
+	            	wait = (long) Math.floor(rnd.nextDouble() * 5.0 + 8.0);
+	            	Thread.sleep(wait); 
+	            	break;
+	            default : 
+	            	Thread.sleep(100);
+	        }
+        } catch (InterruptedException e) {
+            error.send(e.getMessage());
+        }
+
+        LOG.info("Log message with: " + message.getId() + " " + message.getHeader() + message.getPayload());
+        LOG.info("Log emitting with: " + msg.getId() + " " + msg.getHeader() + msg.getPayload());
+
+
+        //send a response on average every 10 messages
+        if ((int)(Math.random() * 10) == 1) {
+            duration.send(message.getProcessingDuration());
+        }
 
         return msg;
     }

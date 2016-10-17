@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +51,17 @@ public class ApplicationMonitorOperator {
     private long lastCleanup = 0;
     private long cleanerGracePeriod = 500L;
     
+    private Thread cleaner = null;
+    
+    @PostConstruct
+    public void initialize(){
+    	
+    	/* Run in background the cleanup thread */
+    	cleaner = new Thread(new BufferCleaner());
+    	cleaner.start();
+    	
+    }
+    
     public void handleMessage(String applicationName, Message message){
     
     	/* Check if this message notify the processing conclusion */
@@ -61,12 +74,15 @@ public class ApplicationMonitorOperator {
 
     		messageIdToTriple.put(message.getId(), triple);
     	} else {
-    	
     		/* Second observation of message id, compute processing delay */
     		long initialTimestamp = triple.getMessageInitialTimestamp();
     		long lastTriggeredEventTimestamp = System.currentTimeMillis();
         	double averageResponseTime = lastTriggeredEventTimestamp - initialTimestamp;
 
+        	if (Double.isNaN(averageResponseTime)){
+        		return;
+        	}
+        	
         	/* Send using a thread */
         	send(applicationName, averageResponseTime);
         	
@@ -75,8 +91,6 @@ public class ApplicationMonitorOperator {
         	
     	}
     	
-    	/* Run in background the cleanup thread */
-    	new Thread(new BufferCleaner()).start();
     }
     
     
@@ -91,7 +105,7 @@ public class ApplicationMonitorOperator {
      * @param lastTriggeredEventTimestamp
      */
     private void send(String applicationName, double responseTime) {
-
+    	
     	/* Update response time list, in a thread safe manner */
     	responseTimesLock.lock();
     	try{
@@ -119,28 +133,39 @@ public class ApplicationMonitorOperator {
 		@Override
 		public void run() {
 			
-			/* Check if cleaner is in the grace period */
-			if (lastCleanup + cleanerGracePeriod > System.currentTimeMillis())
-				return;
-			
-			/* Clean-up buffer */
-			long minTimestamp = System.currentTimeMillis() - expirationPeriod; 
-			List<String> keyToRemove = new ArrayList<String>();
-			List<Triple> triples = new ArrayList<Triple>(messageIdToTriple.values());
+			while (true){
+				
+				try {
+					/* Wake up every second */
+					Thread.sleep(1000);
+					
+					/* Check if cleaner is in the grace period */
+					if (lastCleanup + cleanerGracePeriod > System.currentTimeMillis())
+						return;
+					
+					/* Clean-up buffer */
+					long minTimestamp = System.currentTimeMillis() - expirationPeriod; 
+					List<String> keyToRemove = new ArrayList<String>();
+					List<Triple> triples = new ArrayList<Triple>(messageIdToTriple.values());
 
-			/* Collect expired triples */
-			for (Triple t : triples){
-				if (t.isOlderThan(minTimestamp))
-					keyToRemove.add(t.getId());
+					/* Collect expired triples */
+					for (Triple t : triples){
+						if (t.isOlderThan(minTimestamp))
+							keyToRemove.add(t.getId());
+					}
+					
+					/* Remove them from the (shared) hashmap */
+					for (String key : keyToRemove){
+						messageIdToTriple.remove(key);
+					}
+					
+					lastCleanup = System.currentTimeMillis();
+					
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				
 			}
-			
-			/* Remove them from the (shared) hashmap */
-			for (String key : keyToRemove){
-				messageIdToTriple.remove(key);
-			}
-			
-			lastCleanup = System.currentTimeMillis();
-
 		}
     }
 
@@ -167,7 +192,11 @@ public class ApplicationMonitorOperator {
 	    		waitToSend--;
 	    		return;
 	    	}
-
+	    	
+	    	/* Check if some data needs to be sent */
+	    	if (responseTimes.isEmpty())
+	    		return;
+	    	
 	    	/* Compute average response time */
     		double averageResponseTime = 0;
         	responseTimesLock.lock();

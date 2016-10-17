@@ -21,6 +21,7 @@ import ac.at.tuwien.infosys.visp.controller.ReportController;
 import ac.at.tuwien.infosys.visp.controller.SpeedCalculationController;
 import ac.at.tuwien.infosys.visp.controller.WaitController;
 import ac.at.tuwien.infosys.visp.monitor.ProcessingNodeMonitor;
+import ac.at.tuwien.infosys.visp.topology.generic.ApplicationMonitorOperator;
 import entities.Message;
 
 @Service
@@ -53,10 +54,14 @@ public class Receiver {
     @Autowired
     WaitController waitController;
 
+    @Autowired
+    ApplicationMonitorOperator appMonitor;
 
     @Value("${role}")
     private String role;
-
+    
+    public static final String APPNAME = "default";
+	
     private static final Logger LOG = LoggerFactory.getLogger(Receiver.class);
 
     @Autowired
@@ -71,42 +76,63 @@ public class Receiver {
            return;
         }
 
-        if (message.getHeader().equals("initial")) {
-            switch(role) {
-                case "speed" : sender.send(speedCalculationController.speedCalculation(message)); break;
-                case "aggregate" : sender.send(aggregateRideController.aggregateMessages(message)); break;
-                case "monitor" : monitorController.trackMessage(message); break;
-            }
-        }
-
-        if (message.getHeader().equals("speed")) {
-            sender.send(averageSpeedCalculationController.speedcalculation(message));
-        }
-
-        if (message.getHeader().equals("avgSpeed")) {
-            sender.send(reportController.report(message));
-        }
-
-        if (message.getHeader().equals("aggregation")) {
-            sender.send(distanceController.calculateDistance(message));
-        }
-
-        if (message.getHeader().equals("distance")) {
-            sender.send(reportController.report(message));
-        }
-
-        if (message.getHeader().equals("report")) {
-            monitorController.trackMessage(message);
-        }
-
-        if (message.getHeader().equals("wait")) {
-            sender.send(waitController.forwardMessagewithWait(message));
-        }
-
-        if (message.getHeader().equals("log")) {
-        	logController.logMessage(message);
-        }
+//        if (message.getHeader().equals("initial")) {
+//            switch(role) {
+//                case "speed" : sender.send(speedCalculationController.speedCalculation(message)); break;
+//                case "aggregate" : sender.send(aggregateRideController.aggregateMessages(message)); break;
+//                case "monitor" : monitorController.trackMessage(message); break;
+//            }
+//        }
+//
+//        if (message.getHeader().equals("speed")) {
+//            sender.send(averageSpeedCalculationController.speedcalculation(message));
+//        }
+//
+//        if (message.getHeader().equals("avgSpeed")) {
+//            sender.send(reportController.report(message));
+//        }
+//
+//        if (message.getHeader().equals("aggregation")) {
+//            sender.send(distanceController.calculateDistance(message));
+//        }
+//
+//        if (message.getHeader().equals("distance")) {
+//            sender.send(reportController.report(message));
+//        }
+//
+//        if (message.getHeader().equals("report")) {
+//            monitorController.trackMessage(message);
+//        }
+//
+//        if (message.getHeader().equals("wait")) {
+//            sender.send(waitController.forwardMessagewithWait(message));
+//        }
+//
+//        if (message.getHeader().equals("log")) {
+//        	logController.logMessage(message);
+//        }
         
+        switch(role.toLowerCase()){
+        case "source":
+        	LOG.info("role setted as source! Message discarded");
+        	break;
+        case "step1":
+        	LOG.info("step1 has received a message");
+        	sender.send(waitController.waitAndForwardByRole(role, message));
+        	break;
+        case "step2":
+        	LOG.info("step1 hsa received a message");
+        	sender.send(waitController.waitAndForwardByRole(role, message));
+        	break;
+        case "consumer":
+        	LOG.info("consumer has received a message");
+        	sender.send(waitController.waitAndForwardByRole(role, message));
+        	break;
+        case "monitor":
+        	appMonitor.handleMessage(APPNAME, message);
+        	break;
+        }
+                 
     	monitor.notifyProcessedMessage(role);
     	
     }
