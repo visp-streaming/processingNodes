@@ -41,7 +41,7 @@ public class GenerateReport {
         }
 
         try {
-            Thread.sleep(1000);
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             error.send(e.getMessage());
         }
