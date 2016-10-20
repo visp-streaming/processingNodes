@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import entities.Message;
 import entities.peerJ.MachineData;
-import entities.peerJ.OOEQuality;
+import entities.peerJ.OEEQuality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,12 +54,12 @@ public class CalculateQuality {
 
         Double quality = (producedUnits - defectUnits) / producedUnits;
 
-        OOEQuality ooeQuality = new OOEQuality(machineData.getAssetID(), machineData.getTimestamp(), quality.toString());
+        OEEQuality OEEQuality = new OEEQuality(machineData.getAssetID(), machineData.getTimestamp(), quality.toString());
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Message msg = new Message("empty", null);
         try {
-            msg = new Message("ooequality", ow.writeValueAsString(ooeQuality));
+            msg = new Message("oeequality", ow.writeValueAsString(OEEQuality));
         } catch (JsonProcessingException e) {
             error.send(e.getMessage());
         }

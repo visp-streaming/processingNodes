@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import entities.Message;
 import entities.peerJ.MachineData;
-import entities.peerJ.OOEAvailability;
+import entities.peerJ.OEEAvailability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,20 +54,20 @@ public class CalculateAvailability {
         ops.increment(keyTotalTime, 1);
 
         switch (machineData.getActive()) {
-            case ACTIVE:  ops.increment(keyOperatingTime, 1L); ops.increment(keyScheduledTime, 1); break;
-            case PLANNEDDOWNTIME: ops.increment(keyScheduledTime, 1); break;
-            case DEFECT: break;
+            case "ACTIVE" : ops.increment(keyOperatingTime, 1L); ops.increment(keyScheduledTime, 1); break;
+            case "PLANNEDDOWNTIME" : ops.increment(keyScheduledTime, 1); break;
+            case "DEFECT" : break;
             default: break;
         }
 
         Double availability =  Double.parseDouble(ops.get(keyOperatingTime)) / Double.parseDouble(ops.get(keyScheduledTime));
 
-        OOEAvailability ooeavailability = new OOEAvailability(machineData.getAssetID(), machineData.getTimestamp(), availability.toString());
+        OEEAvailability oeeavailability = new OEEAvailability(machineData.getAssetID(), machineData.getTimestamp(), availability.toString());
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Message msg = new Message("empty", null);
         try {
-            msg = new Message("ooeavailability", ow.writeValueAsString(ooeavailability));
+            msg = new Message("oeeavailability", ow.writeValueAsString(oeeavailability));
         } catch (JsonProcessingException e) {
             error.send(e.getMessage());
         }

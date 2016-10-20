@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import entities.Message;
 import entities.peerJ.MachineData;
-import entities.peerJ.OOEPerformance;
+import entities.peerJ.OEEPerformance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,12 +54,12 @@ public class CalculatePerformance {
 
         Double performance = (producedUnits / machineData.getPlannedProductionTime()) / operatingTime;
 
-        OOEPerformance ooePerformacne = new OOEPerformance(machineData.getAssetID(), machineData.getTimestamp(), performance.toString());
+        OEEPerformance oeePerformance = new OEEPerformance(machineData.getAssetID(), machineData.getTimestamp(), performance.toString());
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Message msg = new Message("empty", null);
         try {
-            msg = new Message("ooeperformance", ow.writeValueAsString(ooePerformacne));
+            msg = new Message("oeeperformance", ow.writeValueAsString(oeePerformance));
         } catch (JsonProcessingException e) {
             error.send(e.getMessage());
         }

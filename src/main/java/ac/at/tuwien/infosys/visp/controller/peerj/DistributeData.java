@@ -17,10 +17,9 @@ public class DistributeData {
 
     public Message process(Message message) {
 
-        Message msg = new Message("machineData", message.getPayload());
+        Message msg = new Message("distributedata", message.getPayload());
 
-
-        return message;
+        return msg;
     }
 
 }

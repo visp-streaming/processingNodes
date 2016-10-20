@@ -23,6 +23,9 @@ public class Receiver_PeerJ {
     @Autowired
     DurationHandler duration;
 
+    @Autowired
+    ErrorHandler error;
+
     @Value("${role}")
     private String role;
 
@@ -41,7 +44,7 @@ public class Receiver_PeerJ {
     private CalculateQuality calculateQuality;
 
     @Autowired
-    private CalculateOOE calculateOOE;
+    private CalculateOEE calculateOEE;
 
     @Autowired
     private GenerateReport generateReport;
@@ -66,23 +69,24 @@ public class Receiver_PeerJ {
             return;
         }
 
-        switch (message.getHeader()) {
-            case "initialMachineData" : sender.send(distributeData.process(message)); break;
-            case "machineData" :
+        switch (message.getHeader().toLowerCase()) {
+            case "initialmachinedata" : sender.send(distributeData.process(message)); break;
+            case "distributedata" :
                 switch (role) {
-                case "calculateAvailability": sender.send(calculateAvailability.process(message)); break;
-                case "calculatePerformance": sender.send(calculatePerformance.process(message)); break;
-                case "calculateQuality": sender.send(calculateQuality.process(message)); break;
+                case "calculateavailability": sender.send(calculateAvailability.process(message)); break;
+                case "calculateperformance": sender.send(calculatePerformance.process(message)); break;
+                case "calculatequality": sender.send(calculateQuality.process(message)); break;
             } break;
-            case "ooeavailability" :  sender.send(calculateOOE.process(message)); break;
-            case "ooeperformance" :  sender.send(calculateOOE.process(message)); break;
-            case "ooequality" :  sender.send(calculateOOE.process(message)); break;
-            case "ooe" :  sender.send(generateReport.process(message)); break;
+            case "oeeavailability" :  sender.send(calculateOEE.process(message)); break;
+            case "oeeperformance" :  sender.send(calculateOEE.process(message)); break;
+            case "oeequality" :  sender.send(calculateOEE.process(message)); break;
+            case "oee" :  sender.send(generateReport.process(message)); break;
             case "warning" :  sender.send(informUser.process(message)); break;
             case "temperature" : sender.send(monitorTemperature.process(message)); break;
             case "availability" : sender.send(monitorAvailability.process(message)); break;
-            default: break;
+            default:  error.send("Message could not be distributed" + message.toString());
         }
+
 
 
         if ((int) (Math.random() * 10) == 1) {

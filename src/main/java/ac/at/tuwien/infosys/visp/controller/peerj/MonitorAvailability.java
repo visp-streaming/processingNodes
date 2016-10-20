@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import entities.Message;
 import entities.peerJ.Availability;
-import entities.peerJ.Status;
 import entities.peerJ.Warning;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +36,7 @@ public class MonitorAvailability {
             error.send(e.getMessage());
         }
 
-        if (availability.getAvailability().equals(Status.DEFECT)) {
+        if (availability.getAvailability().equals("DEFECT")) {
 
             try {
                 msg = new Message("warning", ow.writeValueAsString(new Warning("machine down", availability.getTimestamp(), availability.getAssetID(), "availability")));

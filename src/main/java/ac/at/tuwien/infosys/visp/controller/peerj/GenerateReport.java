@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import entities.Message;
-import entities.peerJ.OOE;
+import entities.peerJ.OEE;
 import entities.peerJ.Warning;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,22 +33,22 @@ public class GenerateReport {
         //Production cycle starts with the begin of the evaluation and ends after the evaluation
 
         ObjectMapper mapper = new ObjectMapper();
-        OOE ooe = null;
+        OEE OEE = null;
         try {
-            ooe = mapper.readValue(message.getPayload(), OOE.class);
+            OEE = mapper.readValue(message.getPayload(), OEE.class);
         } catch (IOException e) {
             error.send(e.getMessage());
         }
 
         try {
-            Thread.sleep(10000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             error.send(e.getMessage());
         }
 
         ValueOperations<String, String> ops = this.template.opsForValue();
 
-        //TODO aggregate OOE value over time and generate a report where machines are grouped by location/type and it shows the difference compared to the last ooe value (some trend)
+        //TODO aggregate OEE value over time and generate a report where machines are grouped by location/type and it shows the difference compared to the last oee value (some trend)
 
         Message msg = new Message("empty", null);
 
@@ -57,7 +57,7 @@ public class GenerateReport {
 
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             try {
-                msg = new Message("warning", ow.writeValueAsString(new Warning("fancy report", ooe.getTimeStamp(), ooe.getAssetID(), "report")));
+                msg = new Message("warning", ow.writeValueAsString(new Warning("fancy report", OEE.getTimeStamp(), OEE.getAssetID(), "report")));
             } catch (JsonProcessingException e) {
                 error.send(e.getMessage());
             }
