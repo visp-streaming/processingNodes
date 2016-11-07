@@ -1,12 +1,13 @@
-package ac.at.tuwien.infosys.visp.controller;
+package ac.at.tuwien.infosys.visp.controller.cloud;
 
 import ac.at.tuwien.infosys.visp.ErrorHandler;
+import ac.at.tuwien.infosys.visp.controller.ForwardController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import entities.Location;
+import entities.cloud.Location;
 import entities.Message;
-import entities.Speed;
+import entities.cloud.Speed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,11 +1,11 @@
-package ac.at.tuwien.infosys.visp.controller;
+package ac.at.tuwien.infosys.visp.controller.cloud;
 
 import ac.at.tuwien.infosys.visp.ErrorHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import entities.Location;
-import entities.Locations;
+import entities.cloud.Location;
+import entities.cloud.Locations;
 import entities.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

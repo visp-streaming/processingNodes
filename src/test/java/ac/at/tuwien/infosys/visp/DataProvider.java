@@ -6,12 +6,15 @@ import org.junit.runner.RunWith;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Repeat;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = VispProcessingNodeApplication.class)
+@SpringBootTest
+@TestPropertySource(locations="classpath:application.properties")
+
 public class DataProvider {
 
     @Value("${outgoingexchange}")
