@@ -1,4 +1,4 @@
-FROM java:8
+FROM anapsix/alpine-java:8
 MAINTAINER Christoph Hochreiner
 LABEL architecture="amd64"
 EXPOSE 10001

@@ -27,14 +27,6 @@ public class LogController {
 
         Message msg = new Message("empty", null);
 
-        try {
-            Thread.sleep(wait);
-        } catch (InterruptedException e) {
-            error.send(e.getMessage());
-        }
-
-
         return msg;
     }
-
 }

@@ -42,6 +42,7 @@ public class Receiver {
     @Autowired
     private ProcessingNodeMonitor monitor;
 
+    //
     @RabbitListener(queues = { "#{'${incomingqueues}'.split('_')}" } )
     public void assign(Message message) throws InterruptedException {
 

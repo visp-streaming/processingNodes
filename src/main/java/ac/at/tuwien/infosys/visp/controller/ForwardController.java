@@ -28,18 +28,22 @@ public class ForwardController {
     public Message forwardMessage(@RequestBody Message message) {
         LOG.trace("Received message with id: " + message.getId());
 
+        Message msg = new Message("forward");
+
         LOG.info("Do nothing with: " + message.getId());
+
+        switch(message.getPayload()) {
+            case "step1" : msg = new Message("forward", "step2");  break;
+            case "step2" : msg = new Message("forward", "step3");  break;
+            case "step3" : msg = new Message("forward", "step4");  break;
+            case "step4" : msg = new Message("forward", "step5");  break;
+            case "step5" :  msg = new Message("log", "log");  break;
+            default : msg = new Message("log", "log");
+        }
 
         LOG.trace("Forwarded message with id: " + message.getId());
 
-        try {
-            Thread.sleep(wait);
-        } catch (InterruptedException e) {
-            error.send(e.getMessage());
-        }
-
-
-        return message;
+        return msg;
     }
 
 }
