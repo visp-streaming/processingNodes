@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>ac.at.tuwien.infosys.visp</groupId>
-	<artifactId>vispProcessingNode</artifactId>
-	<version>0.0.1</version>
+	<artifactId>processingNode</artifactId>
+	<version>0.1</version>
 	<packaging>jar</packaging>
 
 	<name>vispProcessingNode</name>
-	<description>A node that provides stream processing operations</description>
+	<description>A node that provides different stream processing operators.</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -66,8 +66,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>ac.at.tuwien.infosys</groupId>
-			<artifactId>vispCommonData</artifactId>
+			<groupId>ac.at.tuwien.infosys.visp</groupId>
+			<artifactId>common</artifactId>
 			<version>0.1</version>
 		</dependency>
 
