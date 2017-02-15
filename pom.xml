@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.4.1.RELEASE</version>
+		<version>1.5.1.RELEASE</version>
 		<relativePath/>
 	</parent>
 
@@ -68,7 +68,7 @@
 		<dependency>
 			<groupId>ac.at.tuwien.infosys.visp</groupId>
 			<artifactId>common</artifactId>
-			<version>0.1</version>
+			<version>0.2-SNAPSHOT</version>
 		</dependency>
 
 	</dependencies>
@@ -84,7 +84,7 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.4.13</version>
                 <configuration>
-                    <imageName>chochreiner/vispprocessingnodes</imageName>
+                    <imageName>vispstreaming/vispprocessingnodes</imageName>
 					<forceTags>true</forceTags>
 					<imageTags>
 						<imageTag>latest</imageTag>
@@ -108,12 +108,14 @@
 
 	<repositories>
 		<repository>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<id>bintray-chochreiner-VISP</id>
-			<name>bintray</name>
-			<url>http://dl.bintray.com/chochreiner/VISP</url>
+			<id>infosys</id>
+			<name>infosys-maven-releases</name>
+			<url>https://repo.infosys.tuwien.ac.at/artifactory/libs-release</url>
+		</repository>
+		<repository>
+			<id>infosys-snapshots</id>
+			<name>infosys-maven-snapshots</name>
+			<url>https://repo.infosys.tuwien.ac.at/artifactory/libs-snapshot</url>
 		</repository>
 	</repositories>
 
