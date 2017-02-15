@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>ac.at.tuwien.infosys.visp</groupId>
-	<artifactId>vispProcessingNode</artifactId>
-	<version>0.0.1</version>
+	<artifactId>processingNode</artifactId>
+	<version>0.1</version>
 	<packaging>jar</packaging>
 
 	<name>vispProcessingNode</name>
-	<description>A node that provides stream processing operations</description>
+	<description>A node that provides different stream processing operators.</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -49,12 +49,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>ac.at.tuwien.infosys</groupId>
-			<artifactId>vispCommonData</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.5</version>
@@ -70,8 +64,12 @@
 		    <artifactId>guava</artifactId>
 		    <version>19.0</version>
 		</dependency>
-				
 
+		<dependency>
+			<groupId>ac.at.tuwien.infosys.visp</groupId>
+			<artifactId>common</artifactId>
+			<version>0.1</version>
+		</dependency>
 
 	</dependencies>
 
@@ -108,5 +106,16 @@
             </plugin>
         </plugins>
 	</build>
+
+	<repositories>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>bintray-chochreiner-VISP</id>
+			<name>bintray</name>
+			<url>http://dl.bintray.com/chochreiner/VISP</url>
+		</repository>
+	</repositories>
 
 </project>
