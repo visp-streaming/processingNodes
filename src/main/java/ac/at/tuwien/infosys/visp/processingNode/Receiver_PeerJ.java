@@ -71,7 +71,7 @@ public class Receiver_PeerJ {
     private LogController logController;
 
 
-    @RabbitListener(queues = {"#{'${incomingqueues}'.split('_')}"})
+    //@RabbitListener(queues = {"#{'${incomingqueues}'.split('_')}"})
     public void assign(Message message) throws InterruptedException {
 
         Path path = Paths.get("~/killme");
