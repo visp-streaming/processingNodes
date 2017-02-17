@@ -6,6 +6,7 @@ import ac.at.tuwien.infosys.visp.processingNode.controller.WaitController;
 import ac.at.tuwien.infosys.visp.processingNode.monitor.ProcessingNodeMonitor;
 import ac.at.tuwien.infosys.visp.processingNode.topology.generic.ApplicationMonitorOperator;
 import ac.at.tuwien.infosys.visp.common.Message;
+import ac.at.tuwien.infosys.visp.processingNode.watcher.TopologyUpdateWatchService;
 import com.rabbitmq.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +56,9 @@ public class Receiver {
     @Value("${incomingqueues}")
     private String incomingQueues;
 
+    @Autowired
+    TopologyUpdateWatchService topologyUpdateWatchService;
+
     public static final String APPNAME = "default";
 
     private static final Logger LOG = LoggerFactory.getLogger(Receiver.class);
@@ -64,14 +68,14 @@ public class Receiver {
 
     public void assign(Message message) throws InterruptedException {
         // if handle is set to false, do not actually handle the message
-        Path topologyUpdate = Paths.get("/root/topologyUpdate");
-        if (Files.exists(topologyUpdate)) {
-            try {
-                handleTopologyUpdate(topologyUpdate);
-            } catch (IOException e) {
-                LOG.error(e.getLocalizedMessage());
-            }
-        }
+//        Path topologyUpdate = Paths.get("/root/topologyUpdate");
+//        if (Files.exists(topologyUpdate)) {
+//            try {
+//                handleTopologyUpdate(topologyUpdate);
+//            } catch (IOException e) {
+//                LOG.error(e.getLocalizedMessage());
+//            }
+//        }
         Path path = Paths.get("~/killme");
 
         if (Files.exists(path)) {
@@ -104,11 +108,12 @@ public class Receiver {
 
     }
 
-    private void handleTopologyUpdate(Path topologyUpdate) throws IOException {
+    public void handleTopologyUpdate(Path topologyUpdate) throws IOException {
         try {
             LOG.info("Acquiring lock prior to handling topology update");
             topologyUpdateLock.lock();
             if (!topologyUpdate.toFile().exists()) {
+                LOG.error("topology file does not exist at " + topologyUpdate.toFile().toString());
                 return;
             }
             LOG.info("Reading file " + topologyUpdate.toFile().getAbsolutePath());
