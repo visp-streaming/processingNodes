@@ -7,7 +7,6 @@
 	<artifactId>processingNode</artifactId>
 	<version>0.2</version>
 	<packaging>jar</packaging>
-
 	<name>vispProcessingNode</name>
 	<description>A node that provides different stream processing operators.</description>
 
