@@ -177,6 +177,7 @@ public class Receiver {
     public void startListening() {
         LOG.info("START Listening on incoming queue source>step1");
         try {
+
             listen(incomingQueues, "visp", "visp");
         } catch (IOException e) {
             LOG.error(e.getLocalizedMessage());
@@ -306,9 +307,12 @@ public class Receiver {
 
         public List<QueueDefinition> getQueueDefinitions() {
             try {
+                List<QueueDefinition> returnList = new ArrayList<>();
+                if(incomingQueuesString == null || incomingQueuesString.equals("")) {
+                    return returnList; // no incoming queues (i.e., source)
+                }
                 String[] incomingQueues = incomingQueuesString.split("_");
 
-                List<QueueDefinition> returnList = new ArrayList<>();
                 for (String queue : incomingQueues) {
                     returnList.add(new QueueDefinition(queue));
                 }
