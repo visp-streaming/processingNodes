@@ -1,7 +1,7 @@
-package ac.at.tuwien.infosys.visp.processingNode.controller.cloud;
+package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.cloud;
 
 import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
-import ac.at.tuwien.infosys.visp.processingNode.controller.ForwardController;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
 import ac.at.tuwien.infosys.visp.common.cloud.Speed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

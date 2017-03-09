@@ -1,12 +1,13 @@
-package ac.at.tuwien.infosys.visp.processingNode.controller.peerj;
+package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.peerj;
 
+import ac.at.tuwien.infosys.visp.processingNode.DurationHandler;
 import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
-import ac.at.tuwien.infosys.visp.common.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import ac.at.tuwien.infosys.visp.common.Message;
 import ac.at.tuwien.infosys.visp.common.peerJ.MachineData;
-import ac.at.tuwien.infosys.visp.common.peerJ.OEEQuality;
+import ac.at.tuwien.infosys.visp.common.peerJ.OEEPerformance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,16 +18,18 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 @Service
-public class CalculateQuality {
+public class CalculatePerformance {
 
     @Autowired
     ErrorHandler error;
 
     @Autowired
+    DurationHandler duration;
+
+    @Autowired
     private StringRedisTemplate template;
 
-    private static final Logger LOG = LoggerFactory.getLogger(CalculateQuality.class);
-
+    private static final Logger LOG = LoggerFactory.getLogger(CalculatePerformance.class);
 
     public Message process(Message message) {
 
@@ -40,31 +43,27 @@ public class CalculateQuality {
 
         ValueOperations<String, String> ops = this.template.opsForValue();
 
+        String keyOperatingTime = "peerj_operatingTime_" + machineData.getAssetID();
         String keyProducedUnits = "peerj_producedUnits_" + machineData.getAssetID();
-        String keyDefectUnits = "peerj_defectUnits_" + machineData.getAssetID();
 
         ops.setIfAbsent(keyProducedUnits, "0");
-        ops.setIfAbsent(keyDefectUnits, "0");
-
-        ops.increment(keyProducedUnits, machineData.getProducedUnits());
-        ops.increment(keyDefectUnits, machineData.getDefectiveUnits());
+        ops.setIfAbsent(keyOperatingTime, "0");
 
         Double producedUnits = Double.parseDouble(ops.get(keyProducedUnits));
-        Double defectUnits = Double.parseDouble(ops.get(keyDefectUnits));
+        Double operatingTime = Double.parseDouble(ops.get(keyOperatingTime));
 
-        Double quality = (producedUnits - defectUnits) / producedUnits;
+        Double performance = (producedUnits / machineData.getPlannedProductionTime()) / operatingTime;
 
-        OEEQuality OEEQuality = new OEEQuality(machineData.getAssetID(), machineData.getTimestamp(), quality.toString());
+        OEEPerformance oeePerformance = new OEEPerformance(machineData.getAssetID(), machineData.getTimestamp(), performance.toString());
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         Message msg = new Message("empty", null);
         try {
-            msg = new Message("oeequality", ow.writeValueAsString(OEEQuality));
+            msg = new Message("oeeperformance", ow.writeValueAsString(oeePerformance));
         } catch (JsonProcessingException e) {
             error.send(e.getMessage());
         }
 
         return msg;
     }
-
 }

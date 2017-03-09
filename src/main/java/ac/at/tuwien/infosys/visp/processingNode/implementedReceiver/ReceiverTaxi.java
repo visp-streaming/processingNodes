@@ -1,67 +1,45 @@
-package ac.at.tuwien.infosys.visp.processingNode;
+package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver;
 
 
-import ac.at.tuwien.infosys.visp.processingNode.controller.LogController;
-import ac.at.tuwien.infosys.visp.processingNode.controller.WaitController;
 import ac.at.tuwien.infosys.visp.common.Message;
-import ac.at.tuwien.infosys.visp.processingNode.controller.cloud.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ac.at.tuwien.infosys.visp.processingNode.Receiver;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.LogController;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.WaitController;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.cloud.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 @Service
-public class Receiver_Cloud {
+@ConditionalOnProperty(name = "visp.receiver", havingValue = "taxi")
+public class ReceiverTaxi extends Receiver {
 
     @Autowired
-    Sender sender;
+    private SpeedCalculationController speedCalculationController;
 
     @Autowired
-    SpeedCalculationController speedCalculationController;
+    private AggregateRideController aggregateRideController;
 
     @Autowired
-    AggregateRideController aggregateRideController;
+    private MonitorController monitorController;
 
     @Autowired
-    MonitorController monitorController;
+    private AverageSpeedCalculationController averageSpeedCalculationController;
 
     @Autowired
-    AverageSpeedCalculationController averageSpeedCalculationController;
+    private ReportController reportController;
 
     @Autowired
-    ReportController reportController;
+    private DistanceController distanceController;
 
     @Autowired
-    DistanceController distanceController;
+    private LogController logController;
 
     @Autowired
-    LogController logController;
-
-    @Autowired
-    WaitController waitController;
-
-    @Autowired
-    DurationHandler duration;
-
-    @Value("${role}")
-    private String role;
-
-    private static final Logger LOG = LoggerFactory.getLogger(Receiver_Cloud.class);
+    private WaitController waitController;
 
 
-//    @RabbitListener(queues = {"#{'${incomingqueues}'.split('_')}"})
     public void assign(Message message) throws InterruptedException {
-
-        Path path = Paths.get("~/killme");
-
-        if (Files.exists(path)) {
-            return;
-        }
 
         switch (message.getHeader()) {
             case "initial" :
@@ -87,11 +65,6 @@ public class Receiver_Cloud {
             default : break;
         }
 
-
-
-        if ((int) (Math.random() * 10) == 1) {
-            duration.send(message.getProcessingDuration());
-        }
     }
 }
 

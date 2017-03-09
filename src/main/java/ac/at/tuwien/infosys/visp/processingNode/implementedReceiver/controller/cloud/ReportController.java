@@ -1,7 +1,7 @@
-package ac.at.tuwien.infosys.visp.processingNode.controller.cloud;
+package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.cloud;
 
 import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
-import ac.at.tuwien.infosys.visp.processingNode.controller.ForwardController;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
 import ac.at.tuwien.infosys.visp.common.Message;
 import ac.at.tuwien.infosys.visp.common.cloud.Distance;
 import ac.at.tuwien.infosys.visp.common.cloud.Report;

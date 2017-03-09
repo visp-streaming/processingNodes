@@ -20,6 +20,11 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
+		<visp.common.version>0.2-SNAPSHOT</visp.common.version>
+		<joda.version>2.9.4</joda.version>
+		<apache.commons.lang.version>3.5</apache.commons.lang.version>
+		<commons.io.version>2.4</commons.io.version>
+		<guava.version>19.0</guava.version>
 	</properties>
 
 	<dependencies>
@@ -44,30 +49,30 @@
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
-			<version>2.9.4</version>
+			<version>${joda.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.5</version>
+			<version>${apache.commons.lang.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
+			<version>${commons.io.version}</version>
 		</dependency>
 		
 		<dependency>
 		    <groupId>com.google.guava</groupId>
 		    <artifactId>guava</artifactId>
-		    <version>19.0</version>
+		    <version>${guava.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>ac.at.tuwien.infosys.visp</groupId>
 			<artifactId>common</artifactId>
-			<version>0.2-SNAPSHOT</version>
+			<version>${visp.common.version}</version>
 		</dependency>
 
 	</dependencies>
@@ -83,9 +88,8 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.4.13</version>
                 <configuration>
-                    <imageName>vispstreaming/vispprocessingnodes</imageName>
+                    <imageName>vispstreaming/processingnode</imageName>
 					<useConfigFile>true</useConfigFile>
-                    <imageName>bknasmueller/vispprocessingnodes</imageName>
 					<forceTags>true</forceTags>
 					<imageTags>
 						<imageTag>latest</imageTag>

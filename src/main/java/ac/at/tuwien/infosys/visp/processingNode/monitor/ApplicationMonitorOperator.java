@@ -1,13 +1,4 @@
-package ac.at.tuwien.infosys.visp.processingNode.topology.generic;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import javax.annotation.PostConstruct;
+package ac.at.tuwien.infosys.visp.processingNode.monitor;
 
 import ac.at.tuwien.infosys.visp.common.ApplicationQoSMetricsMessage;
 import ac.at.tuwien.infosys.visp.common.Message;
@@ -15,6 +6,14 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The ApplicationMonitorOperator collects and sends QoS metrics related
@@ -43,7 +42,7 @@ public class ApplicationMonitorOperator {
 
     Map<String, Triple> messageIdToTriple = new HashMap<String, ApplicationMonitorOperator.Triple>();
     
-    List<Double> responseTimes = new ArrayList<Double>();
+    List<Double> responseTimes = new ArrayList<>();
     private Lock responseTimesLock = new ReentrantLock();
     
     private int waitToSend = 10;
@@ -100,23 +99,20 @@ public class ApplicationMonitorOperator {
      * initialTimestamp from the data source and lastTriggeredEventTimestamp
      * from the final information consumer. 
      * 
-     * @param initialTimestamp
-     * @param lastTriggeredEventTimestamp
      */
     private void send(String applicationName, double responseTime) {
     	
     	/* Update response time list, in a thread safe manner */
     	responseTimesLock.lock();
-    	try{
+    	try {
     		responseTimes.add(new Double(responseTime));
-    	}finally{
+    	} finally {
     		responseTimesLock.unlock();
     	}
     	
     	/* Aggregate and send statistics */
     	Thread sender = new Thread(new Sender(applicationName));
     	sender.start();
-        
     }
 
 
@@ -168,8 +164,6 @@ public class ApplicationMonitorOperator {
 		}
     }
 
-
-    
     
     /**
      * Message Sender thread which avoids to block on RabbitMQ connection 

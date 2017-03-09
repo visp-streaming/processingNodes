@@ -1,4 +1,4 @@
-package ac.at.tuwien.infosys.visp.processingNode.controller;
+package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller;
 
 import ac.at.tuwien.infosys.visp.processingNode.DurationHandler;
 import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;

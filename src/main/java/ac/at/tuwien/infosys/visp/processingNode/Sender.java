@@ -45,19 +45,19 @@ public class Sender {
     @PostConstruct
     private void computeDestinationOperatorName(){
     	
-    	destinations = new ArrayList<String>();
+    	destinations = new ArrayList<>();
 
     	Iterable<String> dwnStr = Splitter.on(',').split(subscribedOperators);
-    	if (dwnStr == null)
-    		return;
-    	
+    	if (dwnStr == null) {
+            return;
+        }
+
     	Iterator<String> it = dwnStr.iterator();
-    	while(it.hasNext()){
+    	while(it.hasNext()) {
     		destinations.add(it.next());
     	}
     	
     	LOG.info("Set of downstream operators updated. New set: " + destinations);
-    	
     }
 
     public void send(Message message) {

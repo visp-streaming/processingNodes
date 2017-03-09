@@ -2,8 +2,6 @@ package ac.at.tuwien.infosys.visp.processingNode;
 
 
 import ac.at.tuwien.infosys.visp.common.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,8 +13,6 @@ public class ErrorHandler {
     @Value("${role}")
     private String role;
 
-    private static final Logger LOG = LoggerFactory.getLogger(ErrorHandler.class);
-
     private String errorexchange = "error";
 
     @Value("${spring.rabbitmq.outgoing.host}")
@@ -27,7 +23,6 @@ public class ErrorHandler {
 
     @Value("${spring.rabbitmq.password}")
     private String rabbitmqPassword;
-
 
     public void send(String exception) {
 

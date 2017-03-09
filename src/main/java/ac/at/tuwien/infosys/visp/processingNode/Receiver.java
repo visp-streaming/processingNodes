@@ -1,11 +1,11 @@
 package ac.at.tuwien.infosys.visp.processingNode;
 
 
-import ac.at.tuwien.infosys.visp.processingNode.controller.LogController;
-import ac.at.tuwien.infosys.visp.processingNode.controller.WaitController;
-import ac.at.tuwien.infosys.visp.processingNode.monitor.ProcessingNodeMonitor;
-import ac.at.tuwien.infosys.visp.processingNode.topology.generic.ApplicationMonitorOperator;
 import ac.at.tuwien.infosys.visp.common.Message;
+import ac.at.tuwien.infosys.visp.processingNode.monitor.ProcessingNodeMonitor;
+import ac.at.tuwien.infosys.visp.processingNode.monitor.ApplicationMonitorOperator;
+import ac.at.tuwien.infosys.visp.processingNode.util.IncomingQueueExtractor;
+import ac.at.tuwien.infosys.visp.processingNode.util.QueueDefinition;
 import ac.at.tuwien.infosys.visp.processingNode.watcher.TopologyUpdateWatchService;
 import com.rabbitmq.client.*;
 import org.slf4j.Logger;
@@ -19,101 +19,66 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
-public class Receiver {
+public abstract class Receiver {
 
     @Autowired
-    Sender sender;
+    protected Sender sender;
 
     @Autowired
-    LogController logController;
+    protected ApplicationMonitorOperator appMonitor;
 
     @Autowired
-    WaitController waitController;
+    private TopologyUpdateWatchService topologyUpdateWatchService;
 
     @Autowired
-    ApplicationMonitorOperator appMonitor;
+    protected ErrorHandler errorHandler;
 
-    ExecutorService executorService = Executors.newCachedThreadPool();
-
-    ReentrantLock topologyUpdateLock = new ReentrantLock();
-
-    Map<String, Connection> connectionMap = new ConcurrentHashMap<>();
-
-    Map<String, DefaultConsumer> registeredConsumers = new ConcurrentHashMap<>();
-
-    Map<String, Channel> channelMap = new ConcurrentHashMap<>();
-
-    Map<String, String> tagMap = new ConcurrentHashMap<>();
+    @Autowired
+    private DurationHandler durationHandler;
 
     @Value("${role}")
-    private String role;
+    protected String role;
 
     @Value("${incomingqueues}")
     private String incomingQueues;
 
+    private ExecutorService executorService = Executors.newCachedThreadPool();
+
+    private ReentrantLock topologyUpdateLock = new ReentrantLock();
+
+    private Map<String, Connection> connectionMap = new ConcurrentHashMap<>();
+
+    private Map<String, DefaultConsumer> registeredConsumers = new ConcurrentHashMap<>();
+
+    private Map<String, Channel> channelMap = new ConcurrentHashMap<>();
+
+    private Map<String, String> tagMap = new ConcurrentHashMap<>();
+
+    protected static final Logger LOG = LoggerFactory.getLogger(Receiver.class);
+
     @Autowired
-    TopologyUpdateWatchService topologyUpdateWatchService;
+    protected ProcessingNodeMonitor monitor;
 
     public static final String APPNAME = "default";
 
-    private static final Logger LOG = LoggerFactory.getLogger(Receiver.class);
-
-    @Autowired
-    private ProcessingNodeMonitor monitor;
-
-    public void assign(Message message) throws InterruptedException {
-        // if handle is set to false, do not actually handle the message
-//        Path topologyUpdate = Paths.get("/root/topologyUpdate");
-//        if (Files.exists(topologyUpdate)) {
-//            try {
-//                handleTopologyUpdate(topologyUpdate);
-//            } catch (IOException e) {
-//                LOG.error(e.getLocalizedMessage());
-//            }
-//        }
-        Path path = Paths.get("~/killme");
-
-        if (Files.exists(path)) {
-            return;
-        }
-
-
-        switch (role.toLowerCase()) {
-            case "source":
-                LOG.info("role setted as source! Message discarded");
-                break;
-            case "step1":
-                LOG.info("step1 has received a message");
-                sender.send(waitController.waitAndForwardByRole(role, message));
-                break;
-            case "step2":
-                LOG.info("step2 has received a message");
-                sender.send(waitController.waitAndForwardByRole(role, message));
-                break;
-
-            case "monitor":
-                appMonitor.handleMessage(APPNAME, message);
-                break;
-            default:
-                LOG.info(role + " has received a message");
-                sender.send(waitController.waitAndForwardByRole(role, message));
-        }
-
-        monitor.notifyProcessedMessage(role);
-
-    }
+    public abstract void assign(Message message) throws InterruptedException;
 
     public void handleTopologyUpdate(Path topologyUpdate) throws IOException {
         try {
             LOG.info("Acquiring lock prior to handling topology update");
             topologyUpdateLock.lock();
             if (!topologyUpdate.toFile().exists()) {
-                LOG.error("topology file does not exist at " + topologyUpdate.toFile().toString());
+                errorHandler.send("topology file does not exist at " + topologyUpdate.toFile().toString());
                 return;
             }
             LOG.info("Reading file " + topologyUpdate.toFile().getAbsolutePath());
@@ -143,6 +108,16 @@ public class Receiver {
         }
     }
 
+    @PostConstruct
+    public void startListening() {
+        LOG.info("START Listening on incoming queue source>step1");
+        try {
+            listen(incomingQueues, "visp", "visp");
+        } catch (IOException | TimeoutException e) {
+            errorHandler.send(e.getLocalizedMessage());
+        }
+    }
+
     private void applyTopologyChanges(List<String> lines) {
         for (String line : lines) {
             LOG.info("Processing line " + line);
@@ -159,7 +134,7 @@ public class Receiver {
                         throw new RuntimeException("Unable to process line from topology update file: " + splitMessage);
                 }
             } catch (Exception e) {
-                LOG.error(e.getLocalizedMessage());
+                errorHandler.send(e.getLocalizedMessage());
             }
         }
     }
@@ -167,22 +142,30 @@ public class Receiver {
     public void processMessage(Message message) {
         LOG.info("Processing message " + message.toString());
         try {
+           //TODO enable again
+            // if handle is set to false, do not actually handle the message
+//        Path topologyUpdate = Paths.get("/root/topologyUpdate");
+//        if (Files.exists(topologyUpdate)) {
+//            try {
+//                handleTopologyUpdate(topologyUpdate);
+//            } catch (IOException e) {
+//                LOG.error(e.getLocalizedMessage());
+//            }
+//        }
+            
+            if (Files.exists(Paths.get("~/killme"))) {
+                return;
+            }
+
             assign(message);
+
+            monitor.notifyProcessedMessage(role);
+
+            if ((int) (Math.random() * 10) == 1) {
+                durationHandler.send(message.getProcessingDuration());
+            }
         } catch (InterruptedException e) {
-            LOG.error(e.getLocalizedMessage());
-        }
-    }
-
-    @PostConstruct
-    public void startListening() {
-        LOG.info("START Listening on incoming queue source>step1");
-        try {
-
-            listen(incomingQueues, "visp", "visp");
-        } catch (IOException e) {
-            LOG.error(e.getLocalizedMessage());
-        } catch (TimeoutException e) {
-            LOG.error(e.getLocalizedMessage());
+            errorHandler.send(e.getLocalizedMessage());
         }
     }
 
@@ -210,7 +193,7 @@ public class Receiver {
             channel.close();
             channelMap.remove(queue.toString());
         } else {
-            LOG.error("Not able to cancel consumption for consumer tag [" + tagToStop + "]");
+            errorHandler.send("Not able to cancel consumption for consumer tag [" + tagToStop + "]");
         }
     }
 
@@ -237,90 +220,23 @@ public class Receiver {
         QueueingConsumer consumer = new QueueingConsumer(channel);
         String tag = channel.basicConsume(queueName, true, consumer);
         tagMap.put(queueName, tag);
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
+        executorService.execute(() -> {
+            while (true) {
+                try {
+                QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+                ByteArrayInputStream bis = new ByteArrayInputStream(delivery.getBody());
+                    ObjectInput in = new ObjectInputStream(bis);
                     try {
-                        QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-                        ByteArrayInputStream bis = new ByteArrayInputStream(delivery.getBody());
-                        ObjectInput in = new ObjectInputStream(bis);
-                        try {
-                            Message msg = (Message) in.readObject();
-                            LOG.info(consumer.getConsumerTag() + " is doing something...");
-                            Receiver.this.processMessage(msg);
-                        } catch (ClassNotFoundException e) {
-                            LOG.error(e.getLocalizedMessage());
-                        }
-                    } catch (Exception ex) {
-                        LOG.error(ex.getLocalizedMessage());
+                        Message msg = (Message) in.readObject();
+                        LOG.info(consumer.getConsumerTag() + " is doing something...");
+                        Receiver.this.processMessage(msg);
+                    } catch (ClassNotFoundException e) {
+                        errorHandler.send(e.getLocalizedMessage());
                     }
+                } catch (InterruptedException | IOException e) {
+                    errorHandler.send(e.getLocalizedMessage());
                 }
             }
         });
-
-    }
-
-    private class QueueDefinition {
-        public String infrastructureHost;
-        public String senderOperator;
-        public String receiverOperator;
-
-        public QueueDefinition(String infrastructureHost, String senderOperator, String receiverOperator) {
-            this.infrastructureHost = infrastructureHost;
-            this.senderOperator = senderOperator;
-            this.receiverOperator = receiverOperator;
-        }
-
-        public QueueDefinition(String identifier) {
-            String[] hostAndRemainder = identifier.split("/");
-            infrastructureHost = hostAndRemainder[0];
-            String[] senderAndReceiver = hostAndRemainder[1].split(">");
-            senderOperator = senderAndReceiver[0];
-            receiverOperator = senderAndReceiver[1];
-            this.infrastructureHost = infrastructureHost;
-            this.receiverOperator = receiverOperator;
-            this.senderOperator = senderOperator;
-        }
-
-        @Override
-        public String toString() {
-            return infrastructureHost + "/" + senderOperator + ">" + receiverOperator;
-        }
-
-
-    }
-
-    private class IncomingQueueExtractor {
-        private String incomingQueuesString;
-        private String infrastructureHost;
-        private String senderOperator;
-        private String receiverOperator;
-
-
-        public IncomingQueueExtractor(String incomingQueuesString, String infrastructureHost, String senderOperator, String receiverOperator) {
-            this.incomingQueuesString = incomingQueuesString;
-            this.infrastructureHost = infrastructureHost;
-            this.senderOperator = senderOperator;
-            this.receiverOperator = receiverOperator;
-        }
-
-        public List<QueueDefinition> getQueueDefinitions() {
-            try {
-                List<QueueDefinition> returnList = new ArrayList<>();
-                if(incomingQueuesString == null || incomingQueuesString.equals("")) {
-                    return returnList; // no incoming queues (i.e., source)
-                }
-                String[] incomingQueues = incomingQueuesString.split("_");
-
-                for (String queue : incomingQueues) {
-                    returnList.add(new QueueDefinition(queue));
-                }
-
-                return returnList;
-            } catch (Exception e) {
-                throw new RuntimeException("Unable to parse list of incoming queues", e);
-            }
-        }
     }
 }
