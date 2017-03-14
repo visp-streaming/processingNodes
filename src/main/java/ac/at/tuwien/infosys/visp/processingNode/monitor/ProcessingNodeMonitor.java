@@ -1,12 +1,12 @@
 package ac.at.tuwien.infosys.visp.processingNode.monitor;
 
+import org.springframework.stereotype.Service;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import org.springframework.stereotype.Service;
 
 /**
  * The ProcessingNodeMonitor collects statistics on the execution of the
@@ -23,8 +23,8 @@ public class ProcessingNodeMonitor {
 	private Lock processedMessagesLock;
 
 	public ProcessingNodeMonitor() {
-		emittedMessages = new HashMap<String, Long>();
-		processedMessages = new HashMap<String, Long>();
+		emittedMessages = new HashMap<>();
+		processedMessages = new HashMap<>();
 
 		emittedMessagesLock = new ReentrantLock();
 		processedMessagesLock = new ReentrantLock();
@@ -100,7 +100,7 @@ public class ProcessingNodeMonitor {
 		
 		try{
 			lastEmittedMessages = emittedMessages;
-			emittedMessages = new HashMap<String, Long>();
+			emittedMessages = new HashMap<>();
 		}finally{
 			emittedMessagesLock.unlock();
 		}
@@ -115,7 +115,7 @@ public class ProcessingNodeMonitor {
 		
 		try{
 			lastProcessedMessages = processedMessages;
-			processedMessages = new HashMap<String, Long>();
+			processedMessages = new HashMap<>();
 		}finally{
 			processedMessagesLock.unlock();
 		}

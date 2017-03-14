@@ -1,4 +1,4 @@
-package ac.at.tuwien.infosys.visp.processingNode.controller.peerj;
+package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.peerj;
 
 import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
