@@ -140,7 +140,6 @@ public abstract class Receiver {
     }
 
     public void processMessage(Message message) {
-        LOG.info("Processing message " + message.toString());
         try {
            //TODO enable again
             // if handle is set to false, do not actually handle the message
