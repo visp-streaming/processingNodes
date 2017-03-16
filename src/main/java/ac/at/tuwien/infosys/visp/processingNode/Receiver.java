@@ -110,7 +110,7 @@ public abstract class Receiver {
 
     @PostConstruct
     public void startListening() {
-        LOG.info("START Listening on incoming queue source>step1");
+        LOG.info("START Listening on incoming queue");
         try {
             listen(incomingQueues, "visp", "visp");
         } catch (IOException | TimeoutException e) {
@@ -142,17 +142,6 @@ public abstract class Receiver {
     public void processMessage(Message message) {
         LOG.info("Processing message " + message.toString());
         try {
-           //TODO enable again
-            // if handle is set to false, do not actually handle the message
-//        Path topologyUpdate = Paths.get("/root/topologyUpdate");
-//        if (Files.exists(topologyUpdate)) {
-//            try {
-//                handleTopologyUpdate(topologyUpdate);
-//            } catch (IOException e) {
-//                LOG.error(e.getLocalizedMessage());
-//            }
-//        }
-            
             if (Files.exists(Paths.get("~/killme"))) {
                 return;
             }
