@@ -40,6 +40,11 @@ public class TopologyUpdateWatchService {
                 Path dir = Paths.get("/root/");
                 dir.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
 
+                File checkFirst = new File("/root/topologyUpdate");
+                if(checkFirst.exists()) {
+                    receiver.handleTopologyUpdate(checkFirst.toPath());
+                }
+
                 while (true) {
                     WatchKey key;
                     key = watcher.take();
