@@ -6,7 +6,7 @@ import ac.at.tuwien.infosys.visp.processingNode.Receiver;
 import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
 import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.LogController;
 import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.WaitController;
-import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.peerj.*;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.machineData.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;

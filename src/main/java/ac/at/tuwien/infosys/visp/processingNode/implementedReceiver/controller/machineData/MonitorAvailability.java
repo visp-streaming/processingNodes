@@ -1,4 +1,4 @@
-package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.peerj;
+package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.machineData;
 
 import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
 import ac.at.tuwien.infosys.visp.common.Message;

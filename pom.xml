@@ -95,7 +95,7 @@
 						<imageTag>latest</imageTag>
 					</imageTags>
 					<!--<dockerDirectory>docker</dockerDirectory>-->
-                    <baseImage>anapsix/alpine-java:8</baseImage>
+                    <baseImage>vispstreaming/processingbase</baseImage>
                     <entryPoint>["java","-Djava.security.egd=file:/dev/./urandom","-jar","/${project.build.finalName}.jar"]</entryPoint>
                     <resources>
                         <resource>

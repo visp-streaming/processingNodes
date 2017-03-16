@@ -140,7 +140,6 @@ public abstract class Receiver {
     }
 
     public void processMessage(Message message) {
-        LOG.info("Processing message " + message.toString());
         try {
             if (Files.exists(Paths.get("~/killme"))) {
                 return;
