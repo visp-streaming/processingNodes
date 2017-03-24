@@ -1,14 +1,14 @@
 package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.cloud;
 
-import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
+import ac.at.tuwien.infosys.visp.common.cloud.Location;
+import ac.at.tuwien.infosys.visp.common.cloud.Locations;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.GeneralController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import ac.at.tuwien.infosys.visp.common.cloud.Location;
-import ac.at.tuwien.infosys.visp.common.cloud.Locations;
-import ac.at.tuwien.infosys.visp.common.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ListOperations;
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class AggregateRideController {
+public class AggregateRideController extends GeneralController {
 
     private static final Logger LOG = LoggerFactory.getLogger(AggregateRideController.class);
 
@@ -30,17 +30,13 @@ public class AggregateRideController {
     @Autowired
     private StringRedisTemplate template;
 
-    @Autowired
-    ErrorHandler error;
-
-
-    public Message aggregateMessages(Message message) {
-        LOG.trace("Received message with id: " + message.getId());
+    public Message process(Message message) {
+        LOG.trace("Received message with id: " + message.getMessageProperties().getMessageId());
 
         ObjectMapper mapper = new ObjectMapper();
         Location location = null;
         try {
-            location = mapper.readValue(message.getPayload(), Location.class);
+            location = mapper.readValue(message.getBody(), Location.class);
         } catch (IOException e) {
             error.send(e.getMessage());
         }
@@ -50,8 +46,8 @@ public class AggregateRideController {
         ListOperations<String, String> ops = this.template.opsForList();
 
         if ((!location.getLongitude().equals("start")) && (!location.getLatitude().equals("stop"))) {
-            ops.rightPush(key, message.getPayload());
-            LOG.trace("Stored message with id: " + message.getId());
+            ops.rightPush(key, new String(message.getBody()));
+            LOG.trace("Stored message with id: " + message.getMessageProperties().getMessageId());
         }
 
 
@@ -70,9 +66,9 @@ public class AggregateRideController {
             Locations locationList = new Locations();
             locationList.setLocations(locations);
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-            Message msg = new Message("empty", null);
+            Message msg = msgutil.createEmptyMessage();
             try {
-                msg = new Message("aggregation", ow.writeValueAsString(locationList));
+                msg = msgutil.createMessage("aggregation", ow.writeValueAsBytes(locationList));
             } catch (JsonProcessingException e) {
                 error.send(e.getMessage());
             }
@@ -87,6 +83,6 @@ public class AggregateRideController {
             error.send(e.getMessage());
         }
 
-        return new Message("empty", null);
+        return msgutil.createEmptyMessage();
     }
 }

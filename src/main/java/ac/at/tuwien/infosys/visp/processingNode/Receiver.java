@@ -1,22 +1,25 @@
 package ac.at.tuwien.infosys.visp.processingNode;
 
 
-import ac.at.tuwien.infosys.visp.common.Message;
 import ac.at.tuwien.infosys.visp.processingNode.monitor.ApplicationMonitorOperator;
 import ac.at.tuwien.infosys.visp.processingNode.monitor.ProcessingNodeMonitor;
 import ac.at.tuwien.infosys.visp.processingNode.util.IncomingQueueExtractor;
+import ac.at.tuwien.infosys.visp.processingNode.util.MessageUtil;
 import ac.at.tuwien.infosys.visp.processingNode.util.QueueDefinition;
 import ac.at.tuwien.infosys.visp.processingNode.watcher.TopologyUpdateWatchService;
 import com.rabbitmq.client.*;
-import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.support.DefaultMessagePropertiesConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,6 +49,9 @@ public abstract class Receiver {
 
     @Autowired
     private DurationHandler durationHandler;
+
+    @Autowired
+    protected MessageUtil msgutil;
 
     @Value("${role}")
     protected String role;
@@ -151,7 +157,7 @@ public abstract class Receiver {
             monitor.notifyProcessedMessage(role);
 
             if ((int) (Math.random() * 10) == 1) {
-                durationHandler.send(message.getProcessingDuration());
+                durationHandler.send(msgutil.getDuration(message));
             }
         } catch (InterruptedException e) {
             errorHandler.send(e.getLocalizedMessage());
@@ -212,7 +218,8 @@ public abstract class Receiver {
                     @Override
                     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                         try {
-                            Message msg = SerializationUtils.deserialize(body);
+                            org.springframework.amqp.core.MessageProperties messageProps = new DefaultMessagePropertiesConverter().toMessageProperties(properties, envelope, "UTF-8");
+                            Message msg = new Message(body, messageProps);
                             LOG.debug(envelope.getDeliveryTag() + " is doing something...");
                             Receiver.this.processMessage(msg);
                         } catch (Exception e) {
@@ -221,5 +228,9 @@ public abstract class Receiver {
                     }
                 });
         tagMap.put(queueName, tag);
+
     }
+
+
+
 }

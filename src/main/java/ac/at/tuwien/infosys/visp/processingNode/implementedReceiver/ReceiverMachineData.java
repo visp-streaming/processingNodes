@@ -1,12 +1,12 @@
 package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver;
 
 
-import ac.at.tuwien.infosys.visp.common.Message;
 import ac.at.tuwien.infosys.visp.processingNode.Receiver;
 import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
 import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.LogController;
 import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.WaitController;
 import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.machineData.*;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -53,10 +53,10 @@ public class ReceiverMachineData extends Receiver {
 
     public void assign(Message message) throws InterruptedException {
 
-        switch (message.getHeader().toLowerCase()) {
-            case "wait" : sender.send(waitController.forwardMessagewithWait(message)); break;
-            case "forward" : sender.send(forwardController.forwardMessage(message)); break;
-            case "log" : logController.logMessage(message); break;
+        switch (msgutil.getHeader(message).toLowerCase()) {
+            case "wait" : sender.send(waitController.process(message)); break;
+            case "forward" : sender.send(forwardController.process(message)); break;
+            case "log" : logController.process(message); break;
             case "initialmachinedata" : sender.send(parseAndDistributeData.process(message)); break;
             case "distributedata" :
                 switch (role) {

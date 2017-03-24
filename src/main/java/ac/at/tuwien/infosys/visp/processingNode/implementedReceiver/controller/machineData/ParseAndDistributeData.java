@@ -1,30 +1,25 @@
 package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.machineData;
 
-import ac.at.tuwien.infosys.visp.common.Message;
 import ac.at.tuwien.infosys.visp.common.peerJ.MachineData;
-import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.GeneralController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.amqp.core.Message;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class ParseAndDistributeData {
-
-    @Autowired
-    ErrorHandler error;
+public class ParseAndDistributeData extends GeneralController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ParseAndDistributeData.class);
 
@@ -40,9 +35,9 @@ public class ParseAndDistributeData {
         }
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        Message msg = new Message("empty", null);
+        Message msg = msgutil.createEmptyMessage();
         try {
-            msg = new Message("distributedata", ow.writeValueAsString(md));
+            msg = msgutil.createMessage("distributedata", ow.writeValueAsBytes(md));
         } catch (JsonProcessingException e) {
             error.send(e.getMessage());
         }
@@ -54,7 +49,7 @@ public class ParseAndDistributeData {
     private String parse(Message message) {
         try {
             File imageFile = File.createTempFile("img", ".png");
-            FileUtils.writeByteArrayToFile(imageFile, Base64.getDecoder().decode(message.getPayload()));
+            FileUtils.writeByteArrayToFile(imageFile, message.getBody());
             File resultFile = File.createTempFile("result", ".txt");
 
             Process pr = Runtime.getRuntime().exec("tesseract " + imageFile.getAbsolutePath() + " " + resultFile.getAbsolutePath());

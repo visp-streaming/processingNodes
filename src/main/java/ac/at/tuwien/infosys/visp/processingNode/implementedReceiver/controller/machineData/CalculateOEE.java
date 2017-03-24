@@ -1,16 +1,16 @@
 package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.machineData;
 
-import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import ac.at.tuwien.infosys.visp.common.Message;
 import ac.at.tuwien.infosys.visp.common.peerJ.OEE;
 import ac.at.tuwien.infosys.visp.common.peerJ.OEEAvailability;
 import ac.at.tuwien.infosys.visp.common.peerJ.OEEPerformance;
 import ac.at.tuwien.infosys.visp.common.peerJ.OEEQuality;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.GeneralController;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -21,10 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class CalculateOEE {
-
-    @Autowired
-    ErrorHandler error;
+public class CalculateOEE extends GeneralController {
 
     @Autowired
     private StringRedisTemplate template;
@@ -34,7 +31,7 @@ public class CalculateOEE {
     public Message process(Message message) {
 
         HashOperations<String, String, String> ops = this.template.opsForHash();
-        Message msg = new Message("empty", null);
+        Message msg = msgutil.createEmptyMessage();
 
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -43,10 +40,10 @@ public class CalculateOEE {
         String timestamp = "";
         String assetid = "";
 
-        if (message.getHeader().equals("oeeavailability")) {
+        if (msgutil.getHeader(message).equals("oeeavailability")) {
             OEEAvailability OEEAvailability = null;
             try {
-                OEEAvailability = mapper.readValue(message.getPayload(), OEEAvailability.class);
+                OEEAvailability = mapper.readValue(message.getBody(), OEEAvailability.class);
             } catch (IOException e) {
                 error.send(e.getMessage());
             }
@@ -56,10 +53,10 @@ public class CalculateOEE {
             ops.put(key, "availablity", OEEAvailability.getAvailability());
         }
 
-        if (message.getHeader().equals("oeeperformance")) {
+        if (msgutil.getHeader(message).equals("oeeperformance")) {
             OEEPerformance OEEPerformance = null;
             try {
-                OEEPerformance = mapper.readValue(message.getPayload(), OEEPerformance.class);
+                OEEPerformance = mapper.readValue(message.getBody(), OEEPerformance.class);
             } catch (IOException e) {
                 error.send(e.getMessage());
             }
@@ -69,10 +66,10 @@ public class CalculateOEE {
             ops.put(key, "performance", OEEPerformance.getPerformance());
         }
 
-        if (message.getHeader().equals("oeequality")) {
+        if (msgutil.getHeader(message).equals("oeequality")) {
             OEEQuality OEEQuality = null;
             try {
-                OEEQuality = mapper.readValue(message.getPayload(), OEEQuality.class);
+                OEEQuality = mapper.readValue(message.getBody(), OEEQuality.class);
             } catch (IOException e) {
                 error.send(e.getMessage());
             }
@@ -100,7 +97,7 @@ public class CalculateOEE {
             ops.delete(key, "quality");
 
             try {
-                msg = new Message("oee", ow.writeValueAsString(new OEE(assetid, timestamp, oee.toString())));
+                msg = msgutil.createMessage("oee", ow.writeValueAsBytes(new OEE(assetid, timestamp, oee.toString())));
             } catch (JsonProcessingException e) {
                 error.send(e.getMessage());
             }

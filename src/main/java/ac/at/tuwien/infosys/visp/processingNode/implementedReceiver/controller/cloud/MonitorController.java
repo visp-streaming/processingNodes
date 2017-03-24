@@ -1,15 +1,15 @@
 package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.cloud;
 
-import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
-import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import ac.at.tuwien.infosys.visp.common.cloud.Location;
-import ac.at.tuwien.infosys.visp.common.Message;
 import ac.at.tuwien.infosys.visp.common.cloud.Report;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.GeneralController;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.DateTime;
 import org.joda.time.Seconds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 @Service
-public class MonitorController {
+public class MonitorController extends GeneralController {
 
     @Value("${wait.monitor}")
     private Integer wait;
@@ -27,40 +27,37 @@ public class MonitorController {
     @Autowired
     private StringRedisTemplate template;
 
-    @Autowired
-    ErrorHandler error;
-
     private static final Logger LOG = LoggerFactory.getLogger(ForwardController.class);
 
 
-    public void trackMessage(Message message) {
-        LOG.trace("Received message with id: " + message.getId());
+    public Message process(Message message) {
+        LOG.trace("Received message with id: " + message.getMessageProperties().getMessageId());
 
-        if (message.getHeader().equals("initial")) {
+        if (msgutil.getHeader(message).equals("initial")) {
             ObjectMapper mapper = new ObjectMapper();
             Location location = null;
             try {
-                location = mapper.readValue(message.getPayload(), Location.class);
+                location = mapper.readValue(message.getBody(), Location.class);
             } catch (IOException e) {
                 error.send(e.getMessage());
             }
 
             if (location.getLatitude().equals("start")) {
                 startLog(location);
-                return;
+                return msgutil.createEmptyMessage();
             }
 
             if (location.getLatitude().equals("stop")) {
                 stopLog(location);
-                return;
+                return msgutil.createEmptyMessage();
             }
         }
 
-        if (message.getHeader().equals("report")) {
+        if (msgutil.getHeader(message).equals("report")) {
             ObjectMapper mapper = new ObjectMapper();
             Report report = null;
             try {
-                report = mapper.readValue(message.getPayload(), Report.class);
+                report = mapper.readValue(message.getBody(), Report.class);
             } catch (IOException e) {
                 error.send(e.getMessage());
             }
@@ -73,7 +70,7 @@ public class MonitorController {
             error.send(e.getMessage());
         }
 
-
+        return msgutil.createEmptyMessage();
     }
 
 

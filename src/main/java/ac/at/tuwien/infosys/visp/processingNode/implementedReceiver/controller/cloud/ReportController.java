@@ -1,16 +1,16 @@
 package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.cloud;
 
-import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
-import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
-import ac.at.tuwien.infosys.visp.common.Message;
 import ac.at.tuwien.infosys.visp.common.cloud.Distance;
 import ac.at.tuwien.infosys.visp.common.cloud.Report;
 import ac.at.tuwien.infosys.visp.common.cloud.Speed;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.GeneralController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 @Service
-public class ReportController {
+public class ReportController extends GeneralController {
 
 
     @Value("${wait.report}")
@@ -29,26 +29,23 @@ public class ReportController {
     @Autowired
     private StringRedisTemplate template;
 
-    @Autowired
-    ErrorHandler error;
-
     private String key;
 
     private static final Logger LOG = LoggerFactory.getLogger(ForwardController.class);
 
-    public Message report(Message message) {
-        LOG.trace("Received message with id: " + message.getId());
+    public Message process(Message message) {
+        LOG.trace("Received message with id: " + message.getMessageProperties().getMessageId());
 
         HashOperations<String, String, String> ops = this.template.opsForHash();
-        Message msg = new Message("empty", null);
+        Message msg = msgutil.createEmptyMessage();
 
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 
-        if (message.getHeader().equals("avgSpeed")) {
+        if (msgutil.getHeader(message).equals("avgSpeed")) {
             Speed speed = null;
             try {
-                speed = mapper.readValue(message.getPayload(), Speed.class);
+                speed = mapper.readValue(message.getBody(), Speed.class);
             } catch (IOException e) {
                 error.send(e.getMessage());
             }
@@ -60,7 +57,7 @@ public class ReportController {
                 Report report = new Report(speed.getTaxiId(), speed.getSpeed(), distance);
 
                 try {
-                    msg = new Message("report", ow.writeValueAsString(report));
+                    msg = msgutil.createMessage("report", ow.writeValueAsBytes(report));
                     LOG.info("Forwarded report for taxi : " + report.getTaxiId() + " with speed of " + report.getAverageSpeed() + " and distance " + report.getDistance());
                     return msg;
                 } catch (JsonProcessingException e) {
@@ -72,10 +69,10 @@ public class ReportController {
         }
 
 
-        if (message.getHeader().equals("distance")) {
+        if (msgutil.getHeader(message).equals("distance")) {
             Distance distance = null;
             try {
-                distance = mapper.readValue(message.getPayload(), Distance.class);
+                distance = mapper.readValue(message.getBody(), Distance.class);
             } catch (IOException e) {
                 error.send(e.getMessage());
             }
@@ -87,7 +84,7 @@ public class ReportController {
                 Report report = new Report(distance.getTaxiId(), speed, distance.getDistance());
 
                 try {
-                    msg = new Message("report", ow.writeValueAsString(report));
+                    msg = msgutil.createMessage("report", ow.writeValueAsBytes(report));
                     LOG.trace("Forwarded report for taxi : " + report.getTaxiId() + " with speed of " + report.getAverageSpeed() + " and distance " + report.getDistance());
                     return msg;
                 } catch (JsonProcessingException e) {

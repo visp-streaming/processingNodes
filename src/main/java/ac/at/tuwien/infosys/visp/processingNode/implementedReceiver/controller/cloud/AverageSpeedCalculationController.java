@@ -1,14 +1,14 @@
 package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.cloud;
 
-import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
-import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
 import ac.at.tuwien.infosys.visp.common.cloud.Speed;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.GeneralController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import ac.at.tuwien.infosys.visp.common.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 @Service
-public class AverageSpeedCalculationController {
+public class AverageSpeedCalculationController extends GeneralController {
 
 
     @Value("${wait.averagespeed}")
@@ -27,21 +27,17 @@ public class AverageSpeedCalculationController {
     @Autowired
     private StringRedisTemplate template;
 
-    @Autowired
-    ErrorHandler error;
-
-
     private String key;
 
     private static final Logger LOG = LoggerFactory.getLogger(ForwardController.class);
 
-    public Message speedcalculation(Message message) {
-        LOG.trace("Received message with id: " + message.getId());
+    public Message process(Message message) {
+        LOG.trace("Received message with id: " + message.getMessageProperties().getMessageId());
 
         ObjectMapper mapper = new ObjectMapper();
         Speed speed = null;
         try {
-            speed = mapper.readValue(message.getPayload(), Speed.class);
+            speed = mapper.readValue(message.getBody(), Speed.class);
         } catch (IOException e) {
             error.send(e.getMessage());
         }
@@ -53,15 +49,15 @@ public class AverageSpeedCalculationController {
         Speed resultSpeed = new Speed();
         resultSpeed.setTaxiId(speed.getTaxiId());
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        Message msg = new Message("empty", null);
+        Message msg = msgutil.createEmptyMessage();
 
         ops.setIfAbsent(key, "0.0");
 
         if (speed.getSpeed().equals("-1")) {
             try {
                 Speed avgSpeed = new Speed(speed.getTaxiId(), ops.get(key));
-                msg = new Message("avgSpeed", ow.writeValueAsString(avgSpeed));
-                LOG.trace("Forwarded message with id: " + message.getId() + " with AVG Speed of " + ow.writeValueAsString(ops.get(key)) + " for taxi " + speed.getTaxiId());
+                msg = msgutil.createMessage("avgSpeed", ow.writeValueAsBytes(avgSpeed));
+                LOG.trace("Forwarded message with id: " + message.getMessageProperties().getMessageId() + " with AVG Speed of " + ow.writeValueAsString(ops.get(key)) + " for taxi " + speed.getTaxiId());
             } catch (JsonProcessingException e) {
                 error.send(e.getMessage());
             }

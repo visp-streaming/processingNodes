@@ -1,9 +1,8 @@
 package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.machineData;
 
-import ac.at.tuwien.infosys.visp.common.Message;
 import ac.at.tuwien.infosys.visp.common.peerJ.OEE;
 import ac.at.tuwien.infosys.visp.common.peerJ.Warning;
-import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.GeneralController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -14,6 +13,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -26,10 +26,7 @@ import java.util.Base64;
 import java.util.List;
 
 @Service
-public class GenerateReport {
-
-    @Autowired
-    ErrorHandler error;
+public class GenerateReport extends GeneralController {
 
     @Autowired
     private StringRedisTemplate template;
@@ -41,7 +38,7 @@ public class GenerateReport {
         ObjectMapper mapper = new ObjectMapper();
         OEE OEE = null;
         try {
-            OEE = mapper.readValue(message.getPayload(), OEE.class);
+            OEE = mapper.readValue(message.getBody(), OEE.class);
         } catch (IOException e) {
             error.send(e.getMessage());
         }
@@ -51,7 +48,7 @@ public class GenerateReport {
         //TODO generate fancy report
         // aggregate OEE value over time and generate a report where machines are grouped by location/type and it shows the difference compared to the last oee value (some trend)
 
-        Message msg = new Message("empty", null);
+        Message msg = msgutil.createEmptyMessage();
 
         if ((int) (Math.random() * 300) == 1) {
 
@@ -67,7 +64,7 @@ public class GenerateReport {
 
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             try {
-                msg = new Message("warning", ow.writeValueAsString(new Warning(pdfresult, OEE.getTimeStamp(), OEE.getAssetID(), "report")));
+                msg = msgutil.createMessage("warning", ow.writeValueAsBytes(new Warning(pdfresult, OEE.getTimeStamp(), OEE.getAssetID(), "report")));
             } catch (JsonProcessingException e) {
                 error.send(e.getMessage());
             }

@@ -1,43 +1,40 @@
 package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.cloud;
 
-import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import ac.at.tuwien.infosys.visp.common.cloud.Distance;
 import ac.at.tuwien.infosys.visp.common.cloud.Location;
 import ac.at.tuwien.infosys.visp.common.cloud.Locations;
-import ac.at.tuwien.infosys.visp.common.Message;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.GeneralController;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
 @Service
-public class DistanceController {
+public class DistanceController extends GeneralController {
 
 
     @Value("${wait.distance}")
     private Integer wait;
 
-    @Autowired
-    ErrorHandler error;
-
     private static final Logger LOG = LoggerFactory.getLogger(DistanceController.class);
 
 
-    public Message calculateDistance(Message message) {
-        LOG.info("Received message with id: " + message.getId());
+    public Message process(Message message) {
+        LOG.info("Received message with id: " + message.getMessageProperties().getMessageId());
 
         ObjectMapper mapper = new ObjectMapper();
         Locations locations = null;
         try {
-            locations = mapper.readValue(message.getPayload(), Locations.class);
+            locations = mapper.readValue(message.getBody(), Locations.class);
         } catch (IOException e) {
-            error.send(e.getMessage());        }
+            error.send(e.getMessage());
+        }
 
         float overallDistance = 0F;
 
@@ -53,9 +50,9 @@ public class DistanceController {
         Distance distance = new Distance(locations.getLocations().get(0).getTaxiId(), String.valueOf(overallDistance));
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        Message msg = new Message("empty", null);
+        Message msg = msgutil.createEmptyMessage();
         try {
-            msg = new Message("distance", ow.writeValueAsString(distance));
+            msg = msgutil.createMessage("distance", ow.writeValueAsBytes(distance));
         } catch (JsonProcessingException e) {
             error.send(e.getMessage());
         }

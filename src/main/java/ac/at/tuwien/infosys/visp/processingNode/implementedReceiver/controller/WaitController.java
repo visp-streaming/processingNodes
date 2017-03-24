@@ -1,23 +1,14 @@
 package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller;
 
-import ac.at.tuwien.infosys.visp.processingNode.DurationHandler;
-import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
-import ac.at.tuwien.infosys.visp.common.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.amqp.core.Message;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
 
 @Service
-public class WaitController {
-
-    @Autowired
-    ErrorHandler error;
-
-    @Autowired
-    DurationHandler duration;
+public class WaitController extends GeneralController {
 
     private static final Logger LOG = LoggerFactory.getLogger(WaitController.class);
 
@@ -27,32 +18,32 @@ public class WaitController {
     	this.rnd = new Random();
 	}
 
-    public Message forwardMessagewithWait(Message message) {
-        LOG.trace("Received message with id: " + message.getId());
+    public Message process(Message message) {
+        LOG.trace("Received message with id: " + message.getMessageProperties().getMessageId());
 
-        Message msg = new Message("wait");
+        Message msg = msgutil.createEmptyMessage();
 
         try {
-        switch(message.getPayload()) {
-            case "step1" : Thread.sleep(100); msg = new Message("wait", "step2");  break;
-            case "step2" : Thread.sleep(250); msg = new Message("wait", "step3");  break;
-            case "step3" : Thread.sleep(500); msg = new Message("wait", "step4");  break;
-            case "step4" : Thread.sleep(1000); msg = new Message("wait", "step5");  break;
-            case "step5" : Thread.sleep(2000); msg = new Message("log", "log");  break;
-            default : Thread.sleep(100); msg = new Message("log", "log");
+        switch(new String(message.getBody())) {
+            case "step1" : Thread.sleep(100); msg = msgutil.createMessage("wait", "step2");  break;
+            case "step2" : Thread.sleep(250); msg = msgutil.createMessage("wait", "step3");  break;
+            case "step3" : Thread.sleep(500); msg = msgutil.createMessage("wait", "step4");  break;
+            case "step4" : Thread.sleep(1000); msg = msgutil.createMessage("wait", "step5");  break;
+            case "step5" : Thread.sleep(2000); msg = msgutil.createMessage("log", "log");  break;
+            default : Thread.sleep(100); msg = msgutil.createMessage("log", "log");
         }
 
         } catch (InterruptedException e) {
             error.send(e.getMessage());
         }
 
-        LOG.info("Log message with: " + message.getId() + " " + message.getHeader() + message.getPayload());
-        LOG.info("Log emitting with: " + msg.getId() + " " + msg.getHeader() + msg.getPayload());
+        LOG.info("Log message with: " + message.getMessageProperties().getMessageId() + " " + msgutil.getHeader(message) + new String(message.getBody()));
+        LOG.info("Log emitting with: " + msg.getMessageProperties().getMessageId() + " " + msgutil.getHeader(msg) + new String(msg.getBody()));
 
 
         //send a response on average every 5 messages
         if ((int)(Math.random() * 5) == 1) {
-            duration.send(message.getProcessingDuration());
+            duration.send(msgutil.getDuration(message));
         }
 
 
@@ -60,10 +51,10 @@ public class WaitController {
     }
 
     public Message waitAndForwardByRole(String role, Message message) {
-        LOG.trace("Received message with id: " + message.getId());
+        LOG.trace("Received message with id: " + message.getMessageProperties().getMessageId());
 
-        Message msg = new Message(message.getHeader(), "message");
-        msg.setId(message.getId());
+        Message msg = msgutil.createMessage(msgutil.getHeader(message), message.getBody());
+        msg.getMessageProperties().setMessageId(message.getMessageProperties().getMessageId());
 
         try {
         	long wait = 0;
@@ -87,13 +78,13 @@ public class WaitController {
             error.send(e.getMessage());
         }
 
-        LOG.info("Log message with: " + message.getId() + " " + message.getHeader() + message.getPayload());
-        LOG.info("Log emitting with: " + msg.getId() + " " + msg.getHeader() + msg.getPayload());
+        LOG.info("Log message with: " + message.getMessageProperties().getMessageId() + " " + msgutil.getHeader(message) + new String(message.getBody()));
+        LOG.info("Log emitting with: " + msg.getMessageProperties().getMessageId() + " " + msgutil.getHeader(msg) + new String(msg.getBody()));
 
 
         //send a response on average every 10 messages
         if ((int)(Math.random() * 10) == 1) {
-            duration.send(message.getProcessingDuration());
+            duration.send(msgutil.getDuration(message));
         }
 
         return msg;

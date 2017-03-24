@@ -1,10 +1,11 @@
 package ac.at.tuwien.infosys.visp.processingNode;
 
 
-import ac.at.tuwien.infosys.visp.common.Message;
 import ac.at.tuwien.infosys.visp.processingNode.monitor.ProcessingNodeMonitor;
+import ac.at.tuwien.infosys.visp.processingNode.util.MessageUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ public class Sender {
     private String subscribedOperators;
 
     @Autowired
+    private MessageUtil msgutil;
+
+    @Autowired
     private ProcessingNodeMonitor monitor;
     
     private List<String> destinations;
@@ -60,7 +64,7 @@ public class Sender {
     }
 
     public void send(Message message) {
-        if (message.getHeader().equals("empty")) {
+        if (msgutil.getHeader(message).equals("empty")) {
             return;
         }
 
@@ -72,7 +76,7 @@ public class Sender {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setRoutingKey(outgoingExchange);
         template.setQueue(outgoingExchange);
-        template.convertAndSend(outgoingExchange, outgoingExchange, message);
+        template.send(outgoingExchange, outgoingExchange, message);
         connectionFactory.destroy();
 
         /* With current implementation, the outgoing message

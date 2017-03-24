@@ -1,15 +1,15 @@
 package ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.cloud;
 
-import ac.at.tuwien.infosys.visp.processingNode.ErrorHandler;
-import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
+import ac.at.tuwien.infosys.visp.common.cloud.Location;
 import ac.at.tuwien.infosys.visp.common.cloud.Speed;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.ForwardController;
+import ac.at.tuwien.infosys.visp.processingNode.implementedReceiver.controller.GeneralController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import ac.at.tuwien.infosys.visp.common.cloud.Location;
-import ac.at.tuwien.infosys.visp.common.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 @Service
-public class SpeedCalculationController {
+public class SpeedCalculationController extends GeneralController{
 
     @Value("${wait.speed}")
     private Integer wait;
@@ -27,20 +27,17 @@ public class SpeedCalculationController {
     @Autowired
     private StringRedisTemplate template;
 
-    @Autowired
-    ErrorHandler error;
-
     private String key;
 
     private static final Logger LOG = LoggerFactory.getLogger(ForwardController.class);
 
-    public Message speedCalculation(Message message) {
-        LOG.trace("Received message with id: " + message.getId());
+    public Message process(Message message) {
+        LOG.trace("Received message with id: " + message.getMessageProperties().getMessageId());
 
         ObjectMapper mapper = new ObjectMapper();
         Location location = null;
         try {
-            location = mapper.readValue(message.getPayload(), Location.class);
+            location = mapper.readValue(message.getBody(), Location.class);
         } catch (IOException e) {
             error.send(e.getMessage());
         }
@@ -52,15 +49,14 @@ public class SpeedCalculationController {
         Speed speed = calculateSpeed(location, ops);
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        Message msg = new Message("empty", null);
+        Message msg = msgutil.createEmptyMessage();
         try {
-            msg = new Message("speed", ow.writeValueAsString(speed));
+            msg = msgutil.createMessage("speed", ow.writeValueAsBytes(speed));
         } catch (JsonProcessingException e) {
             error.send(e.getMessage());
         }
 
-
-        LOG.trace("Forwarded message with id: " + message.getId() + " with speed of " + speed.getSpeed() + " for taxi " + speed.getTaxiId());
+        LOG.trace("Forwarded message with id: " + message.getMessageProperties().getMessageId() + " with speed of " + speed.getSpeed() + " for taxi " + speed.getTaxiId());
 
         try {
             Thread.sleep(wait);
