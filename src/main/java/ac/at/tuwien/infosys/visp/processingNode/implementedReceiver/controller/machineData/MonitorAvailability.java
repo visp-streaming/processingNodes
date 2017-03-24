@@ -36,6 +36,12 @@ public class MonitorAvailability {
             error.send(e.getMessage());
         }
 
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         if (availability.getAvailability().equals("DEFECT")) {
 
             try {

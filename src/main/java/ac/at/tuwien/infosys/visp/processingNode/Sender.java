@@ -3,7 +3,6 @@ package ac.at.tuwien.infosys.visp.processingNode;
 
 import ac.at.tuwien.infosys.visp.common.Message;
 import ac.at.tuwien.infosys.visp.processingNode.monitor.ProcessingNodeMonitor;
-import com.google.common.base.Splitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -47,16 +45,17 @@ public class Sender {
     	
     	destinations = new ArrayList<>();
 
-    	Iterable<String> dwnStr = Splitter.on(',').split(subscribedOperators);
-    	if (dwnStr == null) {
+    	String[] dwnstr = subscribedOperators.split(",");
+
+    	if (dwnstr.length == 0) {
             return;
         }
 
-    	Iterator<String> it = dwnStr.iterator();
-    	while(it.hasNext()) {
-    		destinations.add(it.next());
-    	}
-    	
+        for (String s : dwnstr) {
+            destinations.add(s);
+        }
+
+
     	LOG.info("Set of downstream operators updated. New set: " + destinations);
     }
 

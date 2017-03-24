@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class ReceiverMachineData extends Receiver {
 
     @Autowired
-    private DistributeData distributeData;
+    private ParseAndDistributeData parseAndDistributeData;
 
     @Autowired
     private CalculateAvailability calculateAvailability;
@@ -57,7 +57,7 @@ public class ReceiverMachineData extends Receiver {
             case "wait" : sender.send(waitController.forwardMessagewithWait(message)); break;
             case "forward" : sender.send(forwardController.forwardMessage(message)); break;
             case "log" : logController.logMessage(message); break;
-            case "initialmachinedata" : sender.send(distributeData.process(message)); break;
+            case "initialmachinedata" : sender.send(parseAndDistributeData.process(message)); break;
             case "distributedata" :
                 switch (role) {
                 case "calculateavailability": sender.send(calculateAvailability.process(message)); break;

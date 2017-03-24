@@ -36,6 +36,12 @@ public class MonitorTemperature {
             error.send(e.getMessage());
         }
 
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         if (temperature.getTemperature() > 100) {
 
             try {

@@ -2,12 +2,13 @@ package ac.at.tuwien.infosys.visp.processingNode;
 
 
 import ac.at.tuwien.infosys.visp.common.Message;
-import ac.at.tuwien.infosys.visp.processingNode.monitor.ProcessingNodeMonitor;
 import ac.at.tuwien.infosys.visp.processingNode.monitor.ApplicationMonitorOperator;
+import ac.at.tuwien.infosys.visp.processingNode.monitor.ProcessingNodeMonitor;
 import ac.at.tuwien.infosys.visp.processingNode.util.IncomingQueueExtractor;
 import ac.at.tuwien.infosys.visp.processingNode.util.QueueDefinition;
 import ac.at.tuwien.infosys.visp.processingNode.watcher.TopologyUpdateWatchService;
 import com.rabbitmq.client.*;
+import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -205,26 +206,20 @@ public abstract class Receiver {
         String queueName = queue.toString();
         LOG.info("Start listening to queue " + queue.toString());
 
-        QueueingConsumer consumer = new QueueingConsumer(channel);
-        String tag = channel.basicConsume(queueName, true, consumer);
-        tagMap.put(queueName, tag);
-        executorService.execute(() -> {
-            while (true) {
-                try {
-                QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-                ByteArrayInputStream bis = new ByteArrayInputStream(delivery.getBody());
-                    ObjectInput in = new ObjectInputStream(bis);
-                    try {
-                        Message msg = (Message) in.readObject();
-                        LOG.info(consumer.getConsumerTag() + " is doing something...");
-                        Receiver.this.processMessage(msg);
-                    } catch (ClassNotFoundException e) {
-                        errorHandler.send(e.getLocalizedMessage());
+
+        String tag = channel.basicConsume(queueName, true,
+                new DefaultConsumer(channel) {
+                    @Override
+                    public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                        try {
+                            Message msg = SerializationUtils.deserialize(body);
+                            LOG.debug(envelope.getDeliveryTag() + " is doing something...");
+                            Receiver.this.processMessage(msg);
+                        } catch (Exception e) {
+                            errorHandler.send(e.getLocalizedMessage());
+                        }
                     }
-                } catch (InterruptedException | IOException e) {
-                    errorHandler.send(e.getLocalizedMessage());
-                }
-            }
-        });
+                });
+        tagMap.put(queueName, tag);
     }
 }

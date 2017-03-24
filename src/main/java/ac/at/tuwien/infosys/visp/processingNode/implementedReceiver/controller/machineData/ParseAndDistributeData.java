@@ -13,18 +13,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class DistributeData {
+public class ParseAndDistributeData {
 
     @Autowired
     ErrorHandler error;
 
-    private static final Logger LOG = LoggerFactory.getLogger(DistributeData.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ParseAndDistributeData.class);
 
     public Message process(Message message) {
 
@@ -32,10 +34,9 @@ public class DistributeData {
 
         String file = parse(message);
         try {
-
             md = parseMachineData(file);
         } catch (IOException e) {
-            error.send(e.getLocalizedMessage());
+            error.send(e.getMessage());
         }
 
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -43,7 +44,7 @@ public class DistributeData {
         try {
             msg = new Message("distributedata", ow.writeValueAsString(md));
         } catch (JsonProcessingException e) {
-            error.send(e.getLocalizedMessage());
+            error.send(e.getMessage());
         }
 
         return msg;
@@ -59,16 +60,19 @@ public class DistributeData {
             Process pr = Runtime.getRuntime().exec("tesseract " + imageFile.getAbsolutePath() + " " + resultFile.getAbsolutePath());
 
             BufferedReader input = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-            String line = null;
+            String line;
             while ((line = input.readLine()) != null) {
                 error.send(line);
+                LOG.info(line);
             }
             pr.waitFor();
+
+            imageFile.delete();
 
             return (resultFile.getAbsolutePath() + ".txt");
 
         } catch (Exception e) {
-            error.send(e.getLocalizedMessage());
+            error.send(e.getMessage());
         }
         return "";
     }
@@ -81,9 +85,22 @@ public class DistributeData {
         md.setAssetID(getItem(data, "assetid"));
         md.setMachineType(getItem(data, "machinetype"));
         md.setLocation(getItem(data, "location"));
-        md.setProducedUnits(Integer.valueOf(getItem(data, "producedunits")));
-        md.setDefectiveUnits(Integer.valueOf(getItem(data, "defectiveunits")));
-        md.setPlannedProductionTime(Integer.valueOf(getItem(data, "plannedproductiontime")));
+        try {
+            md.setProducedUnits(Integer.valueOf(getItem(data, "producedunits")));
+        } catch (Exception e) {
+            md.setProducedUnits(5);
+        }
+        try {
+            md.setDefectiveUnits(Integer.valueOf(getItem(data, "defectiveunits")));
+        } catch (Exception e) {
+            md.setDefectiveUnits(2);
+        }
+        try {
+            md.setPlannedProductionTime(Integer.valueOf(getItem(data, "plannedproductiontime")));
+        } catch (Exception e) {
+            md.setPlannedProductionTime(2);
+        }
+
         md.setActive(getItem(data, "active"));
         md.setTimestamp(getItem(data, "timestamp"));
 
@@ -101,16 +118,20 @@ public class DistributeData {
 
 
     private Map<String, String> parseKeyValue(String filename) throws IOException {
-        Map<String, String> entries = new HashMap<String, String>();
+        Map<String, String> entries = new HashMap<>();
         BufferedReader reader = new BufferedReader(new FileReader(filename));
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.contains(":")) {
-                String[] parts = line.split(":");
-                entries.put(parts[0].trim().toLowerCase(), parts[1].trim());
+                try {
+                    String[] parts = line.split(":");
+                    entries.put(parts[0].trim().toLowerCase(), parts[1].trim());
+                } catch (Exception e) {
+                }
             }
         }
         reader.close();
+        Files.deleteIfExists(Paths.get(filename));
         return entries;
     }
 
