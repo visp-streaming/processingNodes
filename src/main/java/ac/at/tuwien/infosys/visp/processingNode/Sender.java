@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -46,8 +48,6 @@ public class Sender {
 
     @PostConstruct
     private void computeDestinationOperatorName(){
-    	
-    	destinations = new ArrayList<>();
 
     	String[] dwnstr = subscribedOperators.split(",");
 
@@ -55,10 +55,7 @@ public class Sender {
             return;
         }
 
-        for (String s : dwnstr) {
-            destinations.add(s);
-        }
-
+        destinations = new ArrayList<>(Arrays.asList(dwnstr));
 
     	LOG.info("Set of downstream operators updated. New set: " + destinations);
     }
@@ -68,10 +65,11 @@ public class Sender {
             return;
         }
 
+        message.getMessageProperties().setTimestamp(new Date());
+
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
         connectionFactory.setUsername(rabbitmqUsername);
         connectionFactory.setPassword(rabbitmqPassword);
-
 
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setRoutingKey(outgoingExchange);

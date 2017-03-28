@@ -43,7 +43,7 @@ public class WaitController extends GeneralController {
 
         //send a response on average every 5 messages
         if ((int)(Math.random() * 5) == 1) {
-            duration.send(msgutil.getDuration(message));
+            duration.send(message.getMessageProperties().getTimestamp());
         }
 
 
@@ -84,7 +84,7 @@ public class WaitController extends GeneralController {
 
         //send a response on average every 10 messages
         if ((int)(Math.random() * 10) == 1) {
-            duration.send(msgutil.getDuration(message));
+            duration.send(message.getMessageProperties().getTimestamp());
         }
 
         return msg;

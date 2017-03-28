@@ -121,7 +121,8 @@ public abstract class Receiver {
         try {
             listen(incomingQueues, "visp", "visp");
         } catch (IOException | TimeoutException e) {
-            errorHandler.send(e.getLocalizedMessage());
+            errorHandler.send(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -142,6 +143,7 @@ public abstract class Receiver {
                 }
             } catch (Exception e) {
                 errorHandler.send(e.getLocalizedMessage());
+                e.printStackTrace();
             }
         }
     }
@@ -157,10 +159,11 @@ public abstract class Receiver {
             monitor.notifyProcessedMessage(role);
 
             if ((int) (Math.random() * 10) == 1) {
-                durationHandler.send(msgutil.getDuration(message));
+                durationHandler.send(message.getMessageProperties().getTimestamp());
             }
         } catch (InterruptedException e) {
             errorHandler.send(e.getLocalizedMessage());
+            e.printStackTrace();
         }
     }
 
@@ -213,7 +216,10 @@ public abstract class Receiver {
         LOG.info("Start listening to queue " + queue.toString());
 
 
-        String tag = channel.basicConsume(queueName, true,
+        //maximum amount of messages, which can be stored unacknowledged
+        channel.basicQos(5);
+
+        String tag = channel.basicConsume(queueName, false,
                 new DefaultConsumer(channel) {
                     @Override
                     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
@@ -222,8 +228,10 @@ public abstract class Receiver {
                             Message msg = new Message(body, messageProps);
                             LOG.debug(envelope.getDeliveryTag() + " is doing something...");
                             Receiver.this.processMessage(msg);
+                            channel.basicAck(envelope.getDeliveryTag(), false);
                         } catch (Exception e) {
-                            errorHandler.send(e.getLocalizedMessage());
+                            errorHandler.send(e.getMessage());
+                            e.printStackTrace();
                         }
                     }
                 });

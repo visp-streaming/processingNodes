@@ -30,6 +30,7 @@ public class MonitorAvailability extends GeneralController {
             availability = mapper.readValue(message.getBody(), Availability.class);
         } catch (IOException e) {
             error.send(e.getMessage());
+            LOG.error(e.getMessage());
         }
 
         try {
@@ -44,6 +45,7 @@ public class MonitorAvailability extends GeneralController {
                 msg = msgutil.createMessage("warning", ow.writeValueAsBytes(new Warning("machine down", availability.getTimestamp(), availability.getAssetID(), "availability")));
             } catch (JsonProcessingException e) {
                 error.send(e.getMessage());
+                LOG.error(e.getMessage());
             }
         }
         return msg;

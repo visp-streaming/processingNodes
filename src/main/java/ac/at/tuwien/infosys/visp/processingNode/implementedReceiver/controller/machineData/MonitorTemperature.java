@@ -30,12 +30,13 @@ public class MonitorTemperature extends GeneralController {
             temperature = mapper.readValue(message.getBody(), Temperature.class);
         } catch (IOException e) {
             error.send(e.getMessage());
+            LOG.error(e.getMessage());
         }
 
         try {
             Thread.sleep(200);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage());
         }
 
         if (temperature.getTemperature() > 100) {
@@ -44,6 +45,7 @@ public class MonitorTemperature extends GeneralController {
                 msg = msgutil.createMessage("warning", ow.writeValueAsBytes(new Warning("some like it hot", temperature.getTimestamp(), temperature.getAssetID(), "temperature (" + temperature + ")")));
             } catch (JsonProcessingException e) {
                 error.send(e.getMessage());
+                LOG.error(e.getMessage());
             }
         }
         return msg;

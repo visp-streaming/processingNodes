@@ -2,12 +2,12 @@ package ac.at.tuwien.infosys.visp.processingNode;
 
 
 import ac.at.tuwien.infosys.visp.common.Message;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 
 @Service
 public class DurationHandler {
@@ -26,16 +26,19 @@ public class DurationHandler {
 
     private String processingdurationexchange = "processingduration";
 
-    public void send(String oldTime) {
+    public void send(Date oldTime) {
 
-        Long duration = new DateTime(DateTimeZone.UTC).getMillis() - new DateTime(oldTime).getMillis();
+        if (oldTime == null) {
+            return;
+        }
+
+        Long duration = new Date().getTime() - oldTime.getTime();
 
         Message msg = new Message(role, duration.toString());
 
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
         connectionFactory.setUsername(rabbitmqUsername);
         connectionFactory.setPassword(rabbitmqPassword);
-
 
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setRoutingKey(processingdurationexchange);
