@@ -9,18 +9,12 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
 @Service
 public class CalculatePerformance extends GeneralController {
-
-    @Autowired
-    private StringRedisTemplate template;
 
     private static final Logger LOG = LoggerFactory.getLogger(CalculatePerformance.class);
 
@@ -34,18 +28,14 @@ public class CalculatePerformance extends GeneralController {
             error.send(e.getMessage());
         }
 
-        ValueOperations<String, String> ops = this.template.opsForValue();
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage());
+        }
 
-        String keyOperatingTime = "peerj_operatingTime_" + machineData.getAssetID();
-        String keyProducedUnits = "peerj_producedUnits_" + machineData.getAssetID();
-
-        ops.setIfAbsent(keyProducedUnits, "0");
-        ops.setIfAbsent(keyOperatingTime, "0");
-
-        Double producedUnits = Double.parseDouble(ops.get(keyProducedUnits));
-        Double operatingTime = Double.parseDouble(ops.get(keyOperatingTime));
-
-        Double performance = (producedUnits / machineData.getPlannedProductionTime()) / operatingTime;
+        //we assumes a fixed reporting cycle
+        Double performance = (machineData.getProducedUnits() * machineData.getPlannedProductionTime()) / 20.0;
 
         OEEPerformance oeePerformance = new OEEPerformance(machineData.getAssetID(), machineData.getTimestamp(), performance.toString());
 

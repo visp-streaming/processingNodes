@@ -35,6 +35,12 @@ public class CalculateQuality extends GeneralController {
             error.send(e.getMessage());
         }
 
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage());
+        }
+
         ValueOperations<String, String> ops = this.template.opsForValue();
 
         String keyProducedUnits = "peerj_producedUnits_" + machineData.getAssetID();

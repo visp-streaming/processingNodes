@@ -34,7 +34,7 @@ public class MonitorAvailability extends GeneralController {
         }
 
         try {
-            Thread.sleep(200);
+            Thread.sleep(20);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

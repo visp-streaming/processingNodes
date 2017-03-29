@@ -37,6 +37,12 @@ public class CalculateAvailability extends GeneralController {
             error.send(e.getMessage());
         }
 
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage());
+        }
+
         ValueOperations<String, String> ops = this.template.opsForValue();
 
         String keyOperatingTime = "peerj_operatingTime_" + machineData.getAssetID();
@@ -53,7 +59,7 @@ public class CalculateAvailability extends GeneralController {
         switch (machineData.getActive()) {
             case "ACTIVE" : ops.increment(keyOperatingTime, 1L); ops.increment(keyScheduledTime, 1); break;
             case "PLANNEDDOWNTIME" : ops.increment(keyScheduledTime, 1); break;
-            case "DEFECT" : break;
+            case "DEFECT" : ops.increment(keyScheduledTime, 1); break;
             default: break;
         }
 
