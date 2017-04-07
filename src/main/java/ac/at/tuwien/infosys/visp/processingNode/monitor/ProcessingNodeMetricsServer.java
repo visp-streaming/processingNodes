@@ -1,13 +1,10 @@
 package ac.at.tuwien.infosys.visp.processingNode.monitor;
 
-import java.util.Map;
-
+import ac.at.tuwien.infosys.visp.common.ProcessingNodeMetricsMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import ac.at.tuwien.infosys.visp.common.ProcessingNodeMetricsMessage;
+import java.util.Map;
 
 /**
  * The ProcessingNodeMetricsServer exposes the collected statistics 
@@ -15,7 +12,7 @@ import ac.at.tuwien.infosys.visp.common.ProcessingNodeMetricsMessage;
  *
  */
 
-@RestController
+//@RestController
 public class ProcessingNodeMetricsServer {
 
 	@Autowired
@@ -24,7 +21,7 @@ public class ProcessingNodeMetricsServer {
     @Value("${role}")
     private String role;
 	
-    @RequestMapping("/metrics")
+    //@RequestMapping("/metrics")
     public ProcessingNodeMetricsMessage sendAndResetStatistics() {
 
     	Map<String, Long> emittedMessages = procNodeMonitor.getAndResetEmittedMessages();
