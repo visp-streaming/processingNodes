@@ -1,8 +1,6 @@
-FROM anapsix/alpine-java:8
-MAINTAINER Christoph Hochreiner
-LABEL architecture="amd64"
-EXPOSE 10001
-ADD target/vispProcessingNode-0.0.1.jar vispProcessingNode.jar
-ENTRYPOINT java -jar vispProcessingNode.jar
-
-
+FROM vispstreaming/processingbase
+MAINTAINER Christoph Hochreiner <ch.hochreiner@gmail.com>
+ADD target/processingNode-0.2.jar app.jar
+RUN sh -c 'touch /app.jar'
+ENV JAVA_OPTS=""
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar" ]

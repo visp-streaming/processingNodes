@@ -21,10 +21,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
 		<visp.common.version>0.2-SNAPSHOT</visp.common.version>
-		<joda.version>2.9.7</joda.version>
+		<joda.version>2.9.9</joda.version>
 		<apache.commons.lang.version>3.5</apache.commons.lang.version>
 		<commons.io.version>2.5</commons.io.version>
-		<pdfbox.version>2.0.5</pdfbox.version>
+		<pdfbox.version>2.0.6</pdfbox.version>
 	</properties>
 
 	<dependencies>
