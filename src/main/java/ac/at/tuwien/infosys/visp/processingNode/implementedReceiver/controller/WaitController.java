@@ -67,6 +67,10 @@ public class WaitController extends GeneralController {
 	            	wait = (long) Math.floor(rnd.nextDouble() * 9.0 + 30.0);
 	            	Thread.sleep(wait); 
 	            	break;
+                case "step3" :
+                    wait = (long) Math.floor(rnd.nextDouble() * 9.0 + 30.0);
+                    Thread.sleep(wait);
+                    break;
 	            case "consumer" : 
 	            	wait = (long) Math.floor(rnd.nextDouble() * 5.0 + 8.0);
 	            	Thread.sleep(wait); 
