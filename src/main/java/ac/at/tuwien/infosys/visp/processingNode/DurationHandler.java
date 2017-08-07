@@ -24,6 +24,9 @@ public class DurationHandler {
     @Value("${role}")
     private String role;
 
+    @Value("${hostname}")
+    private String containerid;
+
     private String processingdurationexchange = "processingduration";
 
     public void send(Date oldTime) {
@@ -34,7 +37,7 @@ public class DurationHandler {
 
         Long duration = new Date().getTime() - oldTime.getTime();
 
-        Message msg = new Message(role, duration.toString());
+        Message msg = new Message(role, duration.toString(), containerid);
 
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
         connectionFactory.setUsername(rabbitmqUsername);
