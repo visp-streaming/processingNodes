@@ -16,6 +16,12 @@ public class ErrorHandler {
     @Value("${hostname}")
     private String containerid;
 
+    @Value("${operatorname}")
+    private String operatorname;
+
+    @Value("${operatortype}")
+    private String operatortype;
+
     private String errorexchange = "error";
 
     @Value("${spring.rabbitmq.outgoing.host}")
@@ -29,7 +35,7 @@ public class ErrorHandler {
 
     public void send(String exception) {
 
-        Message msg = new Message("error", "operator: " + role + "\n\n" + exception, containerid);
+        Message msg = new Message("error", operatorname, containerid, "operator: " + role + "\n\n" + exception);
 
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(outgoingHost);
         connectionFactory.setUsername(rabbitmqUsername);
